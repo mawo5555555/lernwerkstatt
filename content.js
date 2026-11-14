@@ -48,3 +48,18 @@ const GARAGE = [
   {id:'g7', name:'Unimog',               need:1400, emoji:'🚛', img:'img/garage7.png', text:'Geht überall durch.'},
   {id:'g8', name:'Feldhäcksler',         need:1900, emoji:'🌽', img:'img/garage8.png', text:'Ganz oben in der Garage.'}
 ];
+
+// ---- Das große Ziel: Etappen. Eine Etappe ist geschafft, wenn alle Missionen mindestens 2 Sterne haben.
+const PROJECT = {
+  name: 'MTX 125',
+  title: 'Das große Ziel: MTX-Zylinder',
+  text: 'Ein Zylinder mit etwa 120 bis 125 cm³ für den MTX-Motor. Bis du ihn einbauen kannst, sammelst du hier das Wissen eines echten Tuners. Jede Etappe besteht aus Missionen aus verschiedenen Fächern.',
+  note: 'Wichtig: Ein Umbau auf 125 cm³ ist nur mit Prüfung, Eintragung in die Papiere und dem passenden Führerschein für die Straße erlaubt. Schrauben und Planen machst du mit Erwachsenen.',
+  stages: [
+    {title: 'Motor verstehen',        text: 'Zweitakt, Wärme und Kühlkreislauf.',          ids: ['nawi-8', 'nawi-9', 'nawi-16']},
+    {title: 'Rechnen wie ein Tuner',  text: 'Hubraum, Übersetzung und Zahlen im Griff.',    ids: ['mathe-8', 'mathe-9', 'mathe-12']},
+    {title: 'Lesen und verstehen',    text: 'Fachtexte auf Deutsch und Englisch.',          ids: ['deutsch-10', 'deutsch-14', 'englisch-12']},
+    {title: 'Planen und sparen',      text: 'Teile-Liste, Sparplan und Brief an den Händler.', ids: ['mathe-10', 'mathe-13', 'deutsch-13']},
+    {title: 'Regeln und Sicherheit',  text: 'Betriebserlaubnis, Führerschein und Argumente.', ids: ['deutsch-8', 'deutsch-15']}
+  ]
+};

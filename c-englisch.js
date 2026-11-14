@@ -162,3 +162,21 @@ MISSIONS.push(
 ]}
 
 );
+
+// ---- Großes Ziel: MTX-Zylinder
+MISSIONS.push(
+
+{id:'englisch-12', subject:'englisch', theme:'tuning', topic:'Reading', title:'Water-cooled Power', sub:'Einen Technik-Text lesen', min:14,
+ rlp:'Leseverstehen: Sachtexte global und im Detail verstehen, Fachwörter; Wortschatz Technik',
+ steps:[
+  W('Read the text', 'The MTX engine\n\nThe Honda MTX is a small enduro motorcycle from the 1980s. Its two-stroke engine is liquid-cooled. A pump moves the coolant through the engine and the radiator. The coolant takes the heat away from the cylinder.\n\nSome fans put the MTX engine into a Simson frame. This is called an engine swap. For a bigger cylinder, they often need a stronger carburettor and a new exhaust.\n\nWords: liquid-cooled (flüssigkeitsgekühlt), coolant (Kühlmittel), radiator (Kühler), pump (Pumpe), engine swap (Motorumbau), displacement (Hubraum).'),
+  Q('How is the MTX engine cooled?', 'With liquid', ['With air only', 'With oil only', 'It is not cooled'], 'Im Text: „liquid-cooled“.'),
+  Q('What moves the coolant through the engine?', 'A pump', ['A chain', 'A tyre', 'A seat'], 'Im Text: „A pump moves the coolant.“'),
+  Q('What does the coolant do?', 'It takes the heat away from the cylinder.', ['It makes the engine louder.', 'It fills the tank.', 'It cleans the tyres.'], 'Im Text: „The coolant takes the heat away from the cylinder.“'),
+  T('Wie heißt „Kühler“ auf Englisch? (ein Wort)', 'radiator', 'Radiator – the coolant gives its heat to the air in the radiator.', {}),
+  T('Wie heißt „Hubraum“ auf Englisch? (ein Wort)', 'displacement', 'Displacement is the volume that the pistons move.', {}),
+  Q('What is an engine swap?', 'You put a different engine into a frame.', ['You wash the engine.', 'You sell the engine.', 'You paint the engine.'], 'Swap = tauschen.'),
+  Q('What do they often need for a bigger cylinder?', 'A stronger carburettor and a new exhaust', ['A new seat', 'A new horn', 'A new mirror'], 'Im letzten Satz des Textes.')
+]}
+
+);

@@ -200,3 +200,41 @@ MISSIONS.push(
 ]}
 
 );
+
+// ---- Großes Ziel: MTX-Zylinder
+MISSIONS.push(
+
+{id:'mathe-12', subject:'mathe', theme:'tuning', topic:'Brüche und Dezimalzahlen', title:'MTX: Der große Sprung', sub:'Von 50 über 80 auf 125 cm³', min:14,
+ rlp:'Zahlen: Brüche kürzen und vergleichen, Dezimalzahlen, Faktoren; Größen: Volumen, Liter; Zusatz: Rechnen mit großen Zahlen',
+ steps:[
+  W('Das große Ziel: MTX', 'Die Honda MTX gab es als 50er, 80er und 125er. In der Simson-Szene baut man MTX-Motoren auch in Simson-Rahmen ein. Für den 80er-Motor gibt es Zylinder-Sätze mit deutlich mehr Hubraum, bis etwa 120 bis 125 cm³. Das ist dein großes Ziel.\n\nDie Zahlen im Vergleich: Die Simson S51 hat etwa 50 cm³, der MTX-80-Motor 80 cm³, ein großer Tuning-Zylinder bis etwa 125 cm³.',
+    'Angaben zu Zylindern und Motoren können sich ändern. Vor jedem Kauf im Fachhandel prüfen, was wirklich passt.'),
+  L('Hubraum-Rechner', 'Stelle den Hubraum ein und vergleiche mit der Simson (50 cm³).',
+    [{id:'h', label:'Hubraum', min:50, max:125, step:5, val:125, unit:' cm³'}],
+    v => { const mehr = v.h - 50, g = gcd(mehr, 50);
+      return `<div class="center"><b style="font-size:26px">${v.h} cm³</b><br>Faktor zur Simson: ${de(v.h / 50, 2)}<br>${mehr ? mehr + ' cm³ mehr, das ist ' + (mehr / g) + '/' + (50 / g) + ' mehr' : 'gleich'}<br>in Litern: ${de(v.h / 1000, 3)} l</div>`; }),
+  N('Wie viele cm³ mehr hat ein 125er-Zylinder gegenüber der Simson mit 50 cm³?', 75, '125 − 50 = 75 cm³.', {unit:'cm³'}),
+  N('Das Wievielfache von 50 cm³ sind 125 cm³? (Dezimalzahl)', 2.5, '125 ÷ 50 = 2,5. Der Hubraum ist 2,5-mal so groß.', {}),
+  N('Der MTX-80-Motor hat 80 cm³, der große Zylinder 125 cm³. Wie viele cm³ ist der Unterschied?', 45, '125 − 80 = 45 cm³.', {unit:'cm³'}),
+  Q('Welcher gekürzte Bruch beschreibt 45/80?', '9/16', ['5/8', '3/5', '9/8'], '45 und 80 lassen sich beide durch 5 teilen: 45 ÷ 5 = 9 und 80 ÷ 5 = 16.'),
+  N('Wie viel Liter sind 125 cm³?', 0.125, '125 cm³ ÷ 1 000 = 0,125 l.', {unit:'Liter'}),
+  N('Zum Nachdenken: Ein 125-cm³-Zweitakter fördert bei jeder Umdrehung (theoretisch) 125 cm³. Wie viele Liter bei 6 000 Umdrehungen pro Minute?', 750, '125 · 6 000 = 750 000 cm³. 750 000 cm³ = 750 Liter. In Wirklichkeit ist es weniger, aber so siehst du, wie viel Luft der Motor braucht.', {unit:'Liter', hint:'Erst malnehmen, dann durch 1 000 teilen.'})
+]},
+
+{id:'mathe-13', subject:'mathe', theme:'tuning', topic:'Rechnen mit Geld', title:'Sparplan für den Zylinder', sub:'Rechnen, planen, durchhalten', min:14,
+ rlp:'Zahlen: Rechnen mit Dezimalzahlen und Geld, Division, Runden, Brüche als Anteil; Sachaufgaben',
+ steps:[
+  W('Ein Ziel braucht einen Plan', 'Ein großer Zylinder, der Umbau und die Teile kosten Geld. Mit einem Sparplan siehst du, wann du es schaffst. Die Preise hier sind **Beispiele**: Nimm 288 € als Zielbetrag. Eigene Verdienste wie Rasenmähen helfen dabei.\n\nImmer gilt: Kaufverträge gehen nur mit Zustimmung der Eltern, solange man minderjährig ist.'),
+  L('Sparplan-Rechner', 'Ziel: 288 €. Stelle Taschengeld und Extra-Verdienst ein (ein Monat = 4 Wochen).',
+    [{id:'w', label:'Sparen pro Woche', min:2, max:20, step:1, val:8, unit:' €'}, {id:'e', label:'Extra pro Monat (z. B. Rasen mähen)', min:0, max:60, step:5, val:20, unit:' €'}],
+    v => { const wk = v.w + v.e / 4, weeks = Math.ceil(288 / wk);
+      return `<div class="center"><b style="font-size:26px">${weeks} Wochen</b><br>das sind etwa ${de(weeks / 4, 1)} Monate<br><span class="m">${eur(wk)} pro Woche insgesamt</span></div>`; }),
+  N('Du sparst jeden Monat 12 €. Wie viele Monate brauchst du für 288 €?', 24, '288 ÷ 12 = 24 Monate.', {unit:'Monate'}),
+  N('Du hast schon 96 € gespart. Wie viel fehlt noch bis 288 €?', 192, '288 − 96 = 192 €.', {unit:'€'}),
+  T('Welcher Bruchteil von 288 € sind 96 €? (gekürzt, als Bruch)', ['1/3'], '96/288 gekürzt durch 96 ergibt 1/3.', {hint:'96 mal 3 sind wie viel?'}),
+  N('Du sparst 8 € pro Woche. Wie viele Wochen brauchst du für die fehlenden 192 €?', 24, '192 ÷ 8 = 24 Wochen.', {unit:'Wochen'}),
+  N('Du bekommst 15 € fürs Rasenmähen. Wie viele Rasen musst du mähen, damit 192 € zusammenkommen? (aufrunden)', 13, '192 ÷ 15 = 12,8. Du brauchst also 13 Rasen.', {unit:'Rasen', hint:'Teile 192 durch 15 und runde auf.'}),
+  Q('Wer muss einem Kauf eines teuren Teils zustimmen, solange du noch nicht volljährig bist?', 'Deine Eltern', ['Dein Nachbar', 'Dein Lehrer', 'Niemand'], 'Minderjährige brauchen für größere Käufe die Zustimmung der Eltern.')
+]}
+
+);

@@ -235,3 +235,23 @@ MISSIONS.push(
 ]}
 
 );
+
+// ---- Großes Ziel: MTX-Zylinder
+MISSIONS.push(
+
+{id:'nawi-16', subject:'nawi', theme:'tuning', topic:'Wärme', title:'Wassergekühlt: Der Kühlkreislauf', sub:'Wie Wasser den Motor kühlt', min:15,
+ rlp:'Wärme und Temperatur: Wärmeübertragung, Strömung, Siedetemperatur, Kühlung; Wasser als Wärmespeicher',
+ steps:[
+  W('Wasser als Kühlmittel', 'Wasser kann viel Wärme aufnehmen und transportieren. Darum kühlen viele Motoren mit Wasser, zum Beispiel der Honda-MTX-Motor.\n\nEine **Wasserpumpe** schickt das Kühlmittel durch den **Wassermantel** um den Zylinder. Dort nimmt es Wärme auf. Das heiße Wasser fließt durch den oberen Schlauch zum **Kühler**. Im Kühler gibt es seine Wärme an die Luft ab. Das abgekühlte Wasser fließt durch den unteren Schlauch zurück zum Motor.\n\nEin **Thermostat** hält den Motor auf der richtigen Temperatur: Ist er noch kalt, bleibt der Weg zum Kühler zu.',
+    'Im Kühlsystem steht Druck. Dadurch siedet das Wasser erst bei mehr als 100 °C. Darum nie den Kühlerdeckel bei heißem Motor öffnen: Verbrühungsgefahr.', 'kuehlung'),
+  P('Teile erkunden', 'Tippe auf die Zahlen und lerne die Teile des Kühlkreislaufs kennen.', 'kuehlung'),
+  P('Finde die Teile', 'Tippe der Reihe nach die gefragten Teile an.', 'kuehlung', true),
+  Q('Wozu dient die Wasserpumpe?', 'Sie bewegt das Kühlmittel durch Motor und Kühler.', ['Sie füllt den Tank.', 'Sie schmiert die Kette.', 'Sie zündet das Gemisch.'], 'Ohne Pumpe würde das Wasser kaum zirkulieren.'),
+  Q('Wo gibt das Kühlmittel seine Wärme ab?', 'Im Kühler an die Luft', ['Im Tank', 'In der Zündkerze', 'Im Reifen'], 'Der Kühler hat viele Rippen, damit die Luft viel Wärme mitnimmt.'),
+  Q('Was macht das Thermostat?', 'Es hält die Betriebstemperatur, indem es den Weg zum Kühler öffnet und schließt.', ['Es zeigt die Zeit an.', 'Es macht Licht.', 'Es startet den Motor.'], 'Kalter Motor: Weg zum Kühler zu. Warmer Motor: Weg offen.'),
+  Q('Warum braucht Kühlwasser im Winter Frostschutz?', 'Weil Wasser beim Gefrieren sich ausdehnt und Teile sprengen könnte.', ['Weil Wasser im Winter süß wird.', 'Weil Frostschutz den Motor schneller macht.', 'Es braucht keinen.'], 'Eis braucht mehr Platz als Wasser. Frostschutzmittel senkt die Gefriertemperatur.'),
+  Q('Welcher Vorteil hat Wasserkühlung gegenüber Luftkühlung?', 'Der Motor lässt sich gleichmäßiger kühlen und bleibt bei Last stabiler.', ['Sie braucht keine Teile.', 'Sie macht den Motor leichter.', 'Sie ist immer billiger.'], 'Dafür braucht sie mehr Teile: Pumpe, Kühler, Schläuche.'),
+  Q('Im Kühlsystem steht Druck. Bei welcher Temperatur siedet das Wasser dort?', 'Bei mehr als 100 °C', ['Bei weniger als 100 °C', 'Genau bei 0 °C', 'Es siedet nie'], 'Unter Druck siedet Wasser erst bei höheren Temperaturen. Das macht Dampfblasen unwahrscheinlicher.')
+]}
+
+);

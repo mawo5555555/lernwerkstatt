@@ -167,3 +167,50 @@ MISSIONS.push(
 ]}
 
 );
+
+// ---- Großes Ziel: MTX-Zylinder
+MISSIONS.push(
+
+{id:'deutsch-13', subject:'deutsch', theme:'tuning', topic:'Schreiben', title:'Brief an den Teilehändler', sub:'Einen höflichen, formellen Brief schreiben', min:14,
+ rlp:'Schreiben: formeller Brief (Anrede, Anliegen, Gruß, Aufbau, Höflichkeitsformen)',
+ steps:[
+  W('Der formelle Brief', 'Wenn du eine Firma anschreibst, nutzt du einen **formellen Brief**.\n\nAufbau:\n1. Absender (oben)\n2. Ort und Datum\n3. **Betreff** (kurz: Worum geht es?)\n4. **Anrede**: „Sehr geehrte Damen und Herren,“\n5. Text: Anliegen, Frage, Bitte\n6. **Gruß**: „Mit freundlichen Grüßen“\n7. Name\n\nDie Höflichkeitsform schreibt man groß: Sie, Ihnen, Ihr.',
+    'Bei einem formellen Brief schreibst du als Minderjähriger mit deinen Eltern, wenn es um einen Kauf geht. Allein dürfen sie nicht zustimmen.'),
+  O('Der Brief in der richtigen Reihenfolge', ['Absender mit Adresse', 'Ort und Datum', 'Betreff: Anfrage zu einem Zylinder-Set', 'Sehr geehrte Damen und Herren,', 'ich interessiere mich für Ihren Zylinder mit 125 cm³. Ist er lieferbar?', 'Mit freundlichen Grüßen', 'Name'], 'Tippe die Teile in der richtigen Reihenfolge an.'),
+  Q('Welche Anrede passt bei einem Brief an eine Firma?', 'Sehr geehrte Damen und Herren,', ['Hallo Leute,', 'Hi,', 'Hey Händler,'], 'Bei einem formellen Brief ist die höfliche Anrede wichtig.'),
+  Q('Welche Grußformel passt?', 'Mit freundlichen Grüßen', ['Bis dann!', 'Tschüssi', 'LG'], 'Das ist die übliche Grußformel in formellen Briefen.'),
+  Q('Welcher Satz ist höflich?', 'Könnten Sie mir bitte mitteilen, ob der Zylinder lieferbar ist?', ['Sag mal, hast du den noch?', 'Ich will den Zylinder jetzt.', 'Liefer das schnell!'], 'Höflich mit „Könnten Sie … bitte“.'),
+  T('Ergänze die Anrede: Sehr geehrte Damen und ___,', 'Herren', 'Sehr geehrte Damen und Herren,', {cs:true}),
+  Q('Wie schreibt man die Höflichkeitsform richtig?', 'Ich bedanke mich für Ihre Antwort.', ['Ich bedanke mich für ihre Antwort.', 'Ich bedanke mich für Deine Antwort.', 'ich bedanke mich für ihre antwort.'], 'In der Höflichkeitsform schreibt man „Ihre“ groß.'),
+  Q('Was gehört in den Betreff?', 'Kurz das Thema, zum Beispiel „Anfrage zu einem Zylinder-Set“', ['Dein ganzer Lebenslauf', 'Nur „Hallo“', 'Ein Witz'], 'Der Betreff sagt in wenigen Wörtern, worum es geht.')
+]},
+
+{id:'deutsch-14', subject:'deutsch', theme:'tuning', topic:'Lesen', title:'Sachtext: Honda MTX im Simson-Rahmen', sub:'Einen Text über das große Ziel verstehen', min:14,
+ rlp:'Lesen: Sachtexte verstehen, Informationen entnehmen, wichtige Aussagen wiedergeben',
+ steps:[
+  W('Lies den Text genau', 'Der MTX-Motor in der Simson-Szene\n\nDie Honda MTX ist ein kleines Enduro-Mokick aus den 1980er-Jahren. Es gab sie mit 50, 80 und 125 Kubikzentimetern Hubraum. Ihr Zweitaktmotor wird mit Wasser gekühlt. Eine Pumpe schickt das Kühlwasser durch den Motor und den Kühler. So wird die Wärme gut abtransportiert.\n\nViele Fans von DDR-Mopeds bauen MTX-Motoren in Simson-Rahmen ein. Man nennt das einen Motorumbau. Für den MTX-80-Motor gibt es Zylinder-Sätze mit größerem Hubraum, bis etwa 120 bis 125 Kubikzentimeter. Dafür braucht man meist auch einen passenden Vergaser und einen neuen Auspuff.\n\nEin solcher Umbau ist aufwendig. Außerdem muss er geprüft und in die Papiere eingetragen werden, bevor man damit auf öffentlichen Straßen fahren darf.'),
+  Q('Was ist die Hauptaussage des Textes?', 'Er erklärt, was ein MTX-Motor ist und was bei einem Umbau in einen Simson-Rahmen wichtig ist.', ['Er beschreibt eine Urlaubsreise.', 'Er erklärt, wie man ein Auto lackiert.', 'Er vergleicht Traktoren.'], 'Der Text informiert über den MTX-Motor und den Umbau.'),
+  Q('Wie wird der Motor der MTX gekühlt?', 'Mit Wasser', ['Mit Luft', 'Mit Öl allein', 'Gar nicht'], 'Im Text: „Ihr Zweitaktmotor wird mit Wasser gekühlt.“'),
+  Q('Welche Teile braucht man laut Text für den größeren Zylinder meist zusätzlich?', 'Einen passenden Vergaser und einen neuen Auspuff', ['Einen neuen Tank und neue Reifen', 'Eine neue Sitzbank', 'Ein Navigationsgerät'], 'Das steht im dritten Absatz.'),
+  Q('Was muss bei einem Umbau passieren, bevor man auf der Straße fahren darf?', 'Er muss geprüft und in die Papiere eingetragen werden.', ['Er muss nur gewaschen werden.', 'Nichts, man darf sofort fahren.', 'Man muss ihn lackieren.'], 'Das steht im letzten Absatz.'),
+  T('Wie nennt der Text es, wenn man einen Motor in einen anderen Rahmen einbaut? (ein Wort: „Motor…“)', ['Motorumbau', 'Umbau'], 'Im Text: „Man nennt das einen Motorumbau.“', {hint:'Es beginnt mit „Motor“.'}),
+  Q('Welche Überschrift passt zum zweiten Absatz?', 'Umbau in Simson-Rahmen', ['Wie das Wetter wird', 'Geschichte der Räder', 'Kochen mit Wasser'], 'Der Absatz handelt vom Einbau in Simson-Rahmen und von größeren Zylindern.'),
+  Q('Welche Zahl nennt der Text für den größten Hubraum der MTX?', '125', ['50', '80', '250'], 'Im Text: „50, 80 und 125 Kubikzentimetern“.')
+]},
+
+{id:'deutsch-15', subject:'deutsch', theme:'tuning', topic:'Lesen', title:'Regeln auf dem Weg zum Ziel', sub:'Führerschein, Papiere und Sicherheit', min:14,
+ rlp:'Lesen und Sprechen: Sachtexte verstehen, Regeln und Pflichten im Straßenverkehr kennen, begründen',
+ steps:[
+  W('Von der Idee zur Straße', 'Damit aus einem Traum ein legales Fahrzeug wird, muss man einiges kennen:\n\n• **Führerschein AM**: ab 15 Jahren, für Mopeds bis 50 cm³ und höchstens 45 km/h.\n• **Führerschein A1**: ab 16 Jahren, für Krafträder bis 125 cm³ und höchstens 11 kW.\n• **Helmpflicht** für Fahrer und Beifahrer.\n• **Betriebserlaubnis**: Sie gilt nur für das Fahrzeug, wie es geprüft wurde. Ändert man den Motor, muss ein Fachbetrieb oder eine Prüfstelle (zum Beispiel TÜV oder DEKRA) prüfen und eintragen lassen.\n• **Versicherung**: Ohne gültigen Versicherungsschutz darf man nicht fahren.\n\nBis du alt genug bist: lernen, planen, sparen und mit Erwachsenen schrauben.',
+    'Auf privaten Flächen mit Erlaubnis des Eigentümers gelten andere Regeln als auf der Straße. Auch dort gilt: Helm tragen und nie allein ausprobieren.'),
+  Q('Ab welchem Alter darf man den Führerschein der Klasse AM machen?', 'ab 15 Jahren', ['ab 12 Jahren', 'ab 18 Jahren', 'ab 21 Jahren'], 'Im Text: Klasse AM ab 15 Jahren.'),
+  Q('Welches Fahrzeug darf man mit der Klasse A1 fahren?', 'Krafträder bis 125 cm³ und 11 kW', ['Nur Fahrräder', 'Traktoren bis 5 Tonnen', 'Alle Motorräder'], 'A1 ist für Krafträder bis 125 cm³ und 11 kW.'),
+  Q('Ab welchem Alter darf man die Klasse A1 machen?', 'ab 16 Jahren', ['ab 14 Jahren', 'ab 20 Jahren', 'ab 12 Jahren'], 'A1 ab 16 Jahren.'),
+  Q('Du baust einen anderen Motor in dein Moped. Was musst du tun, bevor du auf der Straße fährst?', 'Prüfen und in die Papiere eintragen lassen', ['Nichts, wenn er gut aussieht', 'Nur den Helm lackieren', 'Den Auspuff abbauen'], 'Die Betriebserlaubnis gilt nur für das geprüfte Fahrzeug.'),
+  Q('Was kann passieren, wenn die Betriebserlaubnis erloschen ist?', 'Bußgeld, Stilllegung, und der Versicherungsschutz kann betroffen sein', ['Nichts', 'Man bekommt eine Medaille', 'Man darf schneller fahren'], 'Das kann für Fahrer teuer und gefährlich werden.'),
+  Q('Welche Schutzausrüstung gehört beim Mopedfahren immer dazu?', 'Helm, feste Schuhe, Handschuhe und Jacke', ['Nur Mütze', 'Nur Sonnenbrille', 'Keine'], 'Schutz ist wichtiger als Tempo.'),
+  Q('Was ist bis zum Führerschein sinnvoll?', 'Lernen, planen, sparen und mit Erwachsenen schrauben', ['Heimlich auf der Straße fahren', 'Alles ohne Rücksprache bauen', 'Abwarten und nichts lernen'], 'So bist du vorbereitet, wenn es soweit ist.'),
+  X('Erkläre einem Erwachsenen in drei Sätzen: Was muss passieren, bevor ein umgebautes Moped auf die Straße darf?', 'Tipp: Prüfung, Eintragung, Führerschein. Mit Pausen sprechen.', 60)
+]}
+
+);

@@ -1,8 +1,8 @@
-# Werkstatt Klasse 6 (Arbeitstitel)
+# Lernwerkstatt
 
 Lern-App (PWA) für den Stoff der 6. Klasse in Brandenburg: Deutsch, Mathe, Englisch und Naturwissenschaften. Die Aufgaben sind in die Welt von Simson, Tuning, Traktor, Rasentraktor, Landwirtschaft und Sport eingebettet. Läuft im Browser, auf iPhone und iPad als Home-Bildschirm-App. Der Fortschritt liegt lokal im Gerät (localStorage).
 
-Version 1.1 (Test).
+Version 1.2 (Test).
 
 ## Starten
 

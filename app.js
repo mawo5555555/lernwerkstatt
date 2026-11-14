@@ -1,10 +1,10 @@
 'use strict';
 const $ = s => document.querySelector(s);
 const KEY = 'wt-state-v1';
-const VERSION = '1.1';
+const VERSION = '1.2';
 let S;
 try { S = JSON.parse(localStorage.getItem(KEY)) } catch (e) {}
-S = Object.assign({points: 0, days: [], done: {}, stars: {}, miss: {}, log: [], ratings: [], theme: 'simson', subj: 'mathe', name: '', daily: {}}, S || {});
+S = Object.assign({points: 0, days: [], done: {}, stars: {}, miss: {}, log: [], ratings: [], theme: 'simson', subj: 'mathe', name: '', daily: {}, goalDate: ''}, S || {});
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)) } catch (e) {} };
 const pad = n => String(n).padStart(2, '0');
 const ymd = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
@@ -24,6 +24,9 @@ const QIDX = {};
 MISSIONS.forEach(m => m.steps.forEach((s, i) => { if (QT.includes(s.type) && (s.type !== 'parts' || s.ask)) { s.qid = m.id + '#' + i; QIDX[s.qid] = {m, s} } }));
 const SUBJ_ORDER = ['mathe', 'deutsch', 'englisch', 'nawi'];
 const byS = k => [...MISSIONS.filter(m => m.subject === k && !m.speech), ...MISSIONS.filter(m => m.subject === k && m.speech)];
+const stageDone = st => st.ids.every(id => (S.stars[id] || 0) >= 2);
+const projectDone = () => PROJECT.stages.every(stageDone);
+const projectPct = () => { const all = PROJECT.stages.flatMap(x => x.ids); return Math.round(100 * all.filter(id => (S.stars[id] || 0) >= 2).length / all.length) };
 const missCount = () => Object.keys(S.miss).filter(q => QIDX[q]).length;
 
 function streak() {
@@ -85,6 +88,8 @@ function home(p) {
   <div class="grid">${SUBJ_ORDER.map(k => { const v = SUBJECTS[k], l = byS(k), d = l.filter(x => S.done[x.id]).length, g2 = l.filter(x => (S.stars[x.id] || 0) >= 2).length;
     return `<button class="th" style="border-color:${v.color}55" onclick="S.subj='${k}';save();go('missions')"><div class="e">${v.emoji}</div><b>${v.name}</b>
     <span class="m">${d} von ${l.length} Missionen</span><div class="bar" style="margin-top:8px"><i style="width:${Math.max(3, 100 * g2 / l.length)}%;background:${v.color}"></i></div></button>`; }).join('')}</div>
+  <h2>Das große Ziel</h2>
+  <button class="item" onclick="go('garage')"><div class="dot" style="background:#ff453a33">🏆</div><div style="flex:1"><b>${esc(PROJECT.name)}</b><span class="m">${projectDone() ? 'Geschafft! Urkunde in der Garage' : projectPct() + ' % der Etappen geschafft'}</span><div class="bar" style="margin-top:8px"><i style="width:${Math.max(3, projectPct())}%;background:#ff453a"></i></div></div></button>
   <h2>Deine Garage</h2>
   <div class="card gcard" onclick="go('garage')"><div class="gimg">${gimg(g)}</div><div style="flex:1"><b>${esc(g.name)}</b>
   ${nxt ? `<div class="m">Noch ${nxt.need - S.points} Punkte bis ${esc(nxt.name)}</div><div class="bar" style="margin-top:8px"><i style="width:${Math.max(4, 100 * (S.points - g.need) / (nxt.need - g.need))}%"></i></div>` : '<div class="m">Alles freigeschaltet!</div>'}</div></div>`;
@@ -99,8 +104,17 @@ function missions() {
   <div class="chips2 wrap">${SUBJ_ORDER.map(k => `<button class="${S.subj === k ? 'on' : ''}" style="${S.subj === k ? 'border-color:' + SUBJECTS[k].color : ''}" onclick="S.subj='${k}';save();render()">${SUBJECTS[k].emoji} ${SUBJECTS[k].name}</button>`).join('')}</div>${out}`;
 }
 
+function projectView() {
+  const done = projectDone();
+  return `<div class="card" style="background:linear-gradient(150deg,#3a1411,#1c1c1e)"><div class="row sp"><b style="font-size:20px">🏆 ${esc(PROJECT.title)}</b><span class="chip">${projectPct()} %</span></div><p class="m" style="color:var(--t)">${esc(PROJECT.text)}</p>
+  <div class="bar" style="margin:10px 0"><i style="width:${Math.max(3, projectPct())}%;background:#ff453a"></i></div>
+  ${PROJECT.stages.map((st, k) => `<div style="margin-top:12px"><div class="row sp"><b>${stageDone(st) ? '✅' : '🔧'} Etappe ${k + 1}: ${esc(st.title)}</b></div><p class="m" style="margin:2px 0 6px">${esc(st.text)}</p>
+    ${st.ids.map(id => { const m = MISSIONS.find(x => x.id === id), n = S.stars[id] || 0; return `<button class="item" style="margin:4px 0;padding:10px" onclick="start('${id}')"><div class="dot" style="width:34px;height:34px;font-size:18px;background:${theme(m.theme).color}33">${SUBJECTS[m.subject].emoji}</div><div style="flex:1"><b style="font-size:15px">${esc(m.title)}</b></div><span class="stars">${n >= 2 ? '✓ ' : ''}${starStr(n)}</span></button>` }).join('')}</div>`).join('')}
+  ${done ? `<div class="card center" style="background:#ff453a22;margin-top:16px"><div class="big">🏆</div><b style="font-size:20px">Urkunde</b><p>Du hast alle Etappen geschafft und weißt jetzt, was zu einem MTX-Zylinder gehört.${S.goalDate ? '<br><span class="m">Geschafft am ' + esc(S.goalDate) + '</span>' : ''}</p></div>` : ''}
+  <p class="m" style="margin-top:14px">${esc(PROJECT.note)}</p></div>`;
+}
 function garage() {
-  return `<h1>Garage</h1><p class="m">Für jede Mission gibt es Punkte. Damit schaltest du neue Fahrzeuge frei.</p>
+  return projectView() + `<h1>Garage</h1><p class="m">Für jede Mission gibt es Punkte. Damit schaltest du neue Fahrzeuge frei.</p>
   ${GARAGE.map(g => `<div class="card gcard ${S.points < g.need ? 'lock' : ''}"><div class="gimg">${gimg(g)}</div><div><b>${esc(g.name)}</b><div class="m">${S.points < g.need ? '🔒 ab ' + g.need + ' Punkten' : esc(g.text)}</div></div></div>`).join('')}`;
 }
 
@@ -124,9 +138,9 @@ function parents() {
   <h2>Lehrplan-Bezug</h2>${plans}
   <div class="card"><b>Tipps</b><p class="m">• Erst zuhören, ausreden lassen, Zeit geben.<br>• Fehler als Hinweis sehen: Im Boxenstopp wird geübt, was nicht gleich klappte.<br>• Anstrengung loben, nicht nur Ergebnisse.<br>• Zehn bis fünfzehn Minuten täglich sind besser als eine lange Stunde.</p></div>
   <div class="card"><b>Name in der App</b><input id="nm" value="${esc(S.name)}" placeholder="Vorname (optional)" style="width:100%;margin-top:8px;padding:12px;border-radius:12px;border:0;background:var(--card2);color:var(--t);font:inherit" onchange="S.name=this.value.trim().slice(0,20);save()"></div>
-  <div class="card"><b>Version</b><p class="m">Werkstatt Klasse 6, Version ${VERSION}. Missionen: ${MISSIONS.length}.</p></div>
+  <div class="card"><b>Version</b><p class="m">Lernwerkstatt, Version ${VERSION}. Missionen: ${MISSIONS.length}.</p></div>
   <div class="card"><b>Synchronisation</b><p class="m">Noch nicht aktiv. Der Fortschritt liegt nur auf diesem Gerät.</p></div>
-  <button class="btn alt" onclick="if(confirm('Wirklich alle Fortschritte löschen?')){S.points=0;S.days=[];S.done={};S.stars={};S.miss={};S.log=[];S.ratings=[];S.daily={};save();render()}">Fortschritt zurücksetzen</button>`;
+  <button class="btn alt" onclick="if(confirm('Wirklich alle Fortschritte löschen?')){S.points=0;S.days=[];S.done={};S.stars={};S.miss={};S.log=[];S.ratings=[];S.daily={};S.goalDate='';save();render()}">Fortschritt zurücksetzen</button>`;
 }
 
 // ---- Mission ablaufen lassen
@@ -384,11 +398,13 @@ function finish() {
   S.log.push({d: today(), id: m.id, s: stars}); S.log = S.log.slice(-500);
   if (!S.days.includes(today())) S.days.push(today());
   if (run.score) S.ratings.push({date: today(), id: m.id, score: run.score});
-  save(); const st = streak();
+  const wasDone = !!S.goalDate; if (!wasDone && projectDone()) S.goalDate = new Date().toLocaleDateString('de-DE');
+  save(); const st = streak(); const goalNow = !wasDone && !!S.goalDate;
   const unlocked = GARAGE.find(g => before < g.need && S.points >= g.need), mc = missCount();
   $('#app').innerHTML = `<div class="center" style="margin-top:34px"><div class="big">🏁</div><h1>${box ? 'Boxenstopp erledigt!' : 'Mission geschafft!'}</h1>
     ${run.tot ? `<div class="stars big2">${starStr(stars)}</div><p class="m">${run.ok} von ${run.tot} Aufgaben gleich beim ersten Versuch richtig.</p>` : ''}
     <p class="m">Du hast ${pts} Punkte geholt${st > 1 ? ' und ' + st + ' Tage in Folge gelernt' : ''}.</p></div>
+    ${goalNow ? `<div class="card center" style="background:#ff453a22"><div class="big">🏆</div><b style="font-size:20px">Großes Ziel geschafft!</b><p class="m">Alle Etappen zum MTX-Zylinder sind erledigt. Deine Urkunde liegt in der Garage.</p></div>` : ''}
     ${unlocked ? `<div class="card gcard"><div class="gimg">${gimg(unlocked)}</div><div><b>Neu in der Garage:</b><br>${esc(unlocked.name)}</div></div>` : ''}
     ${mc ? `<button class="btn alt" onclick="startBox()">Boxenstopp: ${mc} Aufgaben wiederholen</button>` : ''}
     <button class="btn" onclick="go('home')">Zurück</button>`;

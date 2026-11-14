@@ -220,6 +220,36 @@ const RASEN_SPOTS = [
   {x: 77.9, y: 52.6, name: 'Scheinwerfer', info: 'Der Scheinwerfer erleuchtet die Strecke in der Dämmerung.'}
 ];
 
+// ---- Kühlkreislauf (Schema, wassergekühlter Zweitakter)
+(() => {
+  let fins = '', i; for (i = 0; i < 13; i++) fins += `<line x1="${44 + i * 5}" y1="60" x2="${44 + i * 5}" y2="204" stroke="#5a5a5f" stroke-width="1.2"/>`;
+  let jacket = ''; for (i = 0; i < 5; i++) jacket += `<rect x="${296 + i * 14}" y="92" width="7" height="64" rx="3" fill="#3b8cff" opacity=".75"/>`;
+  SVGS.kuehlung = svg(`<ellipse cx="240" cy="244" rx="215" ry="5" fill="rgba(0,0,0,.4)"/>
+  <!-- Kühler -->
+  <rect x="38" y="56" width="78" height="152" rx="8" fill="#26262a" stroke="url(#gChrome)" stroke-width="3"/>${fins}<g stroke="#8e8e93" stroke-width="1"><line x1="40" y1="80" x2="114" y2="80"/><line x1="40" y1="104" x2="114" y2="104"/><line x1="40" y1="128" x2="114" y2="128"/><line x1="40" y1="152" x2="114" y2="152"/><line x1="40" y1="176" x2="114" y2="176"/></g>
+  <rect x="62" y="46" width="30" height="12" rx="4" fill="url(#gChrome)" stroke="#555" stroke-width="1"/>
+  <path d="M26 120 h-14 m6 -6 l-6 6 l6 6 M26 150 h-14 m6 -6 l-6 6 l6 6" fill="none" stroke="#5ac8fa" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Motorblock mit Wassermantel -->
+  <rect x="236" y="160" width="190" height="62" rx="12" fill="url(#gAlu)" stroke="#4d4d52" stroke-width="2"/><circle cx="332" cy="190" r="22" fill="#6a6a6f" stroke="#33333a" stroke-width="1.6"/><circle cx="332" cy="190" r="8" fill="url(#gChrome)"/>
+  <rect x="286" y="82" width="92" height="84" rx="8" fill="#9a9aa0" stroke="#4d4d52" stroke-width="2"/>${jacket}<rect x="306" y="64" width="52" height="22" rx="6" fill="url(#gAlu)" stroke="#4d4d52" stroke-width="1.6"/><rect x="326" y="50" width="12" height="16" rx="2" fill="#f4f4f6" stroke="#bbb"/><rect x="324" y="40" width="16" height="12" rx="3" fill="#141416"/>
+  <!-- Thermostat, Schläuche, Pumpe -->
+  <path d="M286 100 C240 96 190 96 112 84" fill="none" stroke="#7a1810" stroke-width="12" stroke-linecap="round"/><path d="M286 100 C240 96 190 96 112 84" fill="none" stroke="#ff6f5e" stroke-width="8" stroke-linecap="round" stroke-dasharray="14 8"/>
+  <path d="M112 190 C170 204 214 214 250 208" fill="none" stroke="#10417a" stroke-width="12" stroke-linecap="round"/><path d="M112 190 C170 204 214 214 250 208" fill="none" stroke="#5ac8fa" stroke-width="8" stroke-linecap="round" stroke-dasharray="14 8"/>
+  <rect x="190" y="82" width="26" height="26" rx="6" fill="url(#gChrome)" stroke="#555" stroke-width="1.4"/><path d="M196 95 h14" stroke="#555" stroke-width="2"/><circle cx="203" cy="95" r="4" fill="#ffd60a" stroke="#555"/>
+  <circle cx="262" cy="208" r="20" fill="url(#gAlu)" stroke="#4d4d52" stroke-width="2"/><g stroke="#33333a" stroke-width="2.4" stroke-linecap="round"><line x1="262" y1="196" x2="262" y2="220"/><line x1="250" y1="208" x2="274" y2="208"/><line x1="254" y1="200" x2="270" y2="216"/><line x1="254" y1="216" x2="270" y2="200"/></g><circle cx="262" cy="208" r="4" fill="#d1d1d6"/>
+  <path d="M268 160 L268 190" fill="none" stroke="#10417a" stroke-width="10" stroke-linecap="round"/><path d="M268 160 L268 190" fill="none" stroke="#5ac8fa" stroke-width="6" stroke-linecap="round" stroke-dasharray="10 6"/>
+  <text x="130" y="76" font-size="11" fill="#ff6f5e">heiß</text><text x="150" y="226" font-size="11" fill="#5ac8fa">kalt</text>`);
+})();
+const KUEHLUNG_SPOTS = [
+  {x: 16.5, y: 49.5, name: 'Kühler', info: 'Im Kühler fließt das Wasser durch viele dünne Kanäle mit Rippen. Die Fahrtluft nimmt die Wärme mit.'},
+  {x: 16.5, y: 18.5, name: 'Kühlerdeckel', info: 'Der Deckel hält Druck im System. Bei heißem Motor nie öffnen: Verbrühungsgefahr.'},
+  {x: 42.0, y: 36.0, name: 'Thermostat', info: 'Das Thermostat öffnet erst, wenn der Motor warm genug ist. So erreicht er schneller die richtige Temperatur.'},
+  {x: 54.5, y: 82.5, name: 'Wasserpumpe', info: 'Die Pumpe treibt das Kühlmittel durch das ganze System.'},
+  {x: 44.0, y: 35.0, name: 'Oberer Schlauch', info: 'Durch den oberen Schlauch fließt das heiße Wasser vom Motor zum Kühler.'},
+  {x: 38.0, y: 77.5, name: 'Unterer Schlauch', info: 'Durch den unteren Schlauch fließt das abgekühlte Wasser zurück zum Motor.'},
+  {x: 69.0, y: 45.0, name: 'Wassermantel', info: 'Um den Zylinder liegen Kanäle mit Kühlwasser. Dort nimmt das Wasser die Wärme auf.'},
+  {x: 70.0, y: 22.0, name: 'Zündkerze', info: 'Die Kerze entzündet das Gemisch im Zylinder.'}
+];
 // ---- Zweitaktmotor im Schnitt (Modell: Hub 44, Kurbelradius 22, Pleuel 62; 1 Einheit = 1 mm)
 function zyl(alpha, opt = {}) {
   const r = 22, l = 62, a = alpha * Math.PI / 180, cx = 150, cy = 240;
@@ -273,4 +303,4 @@ const ZYL_SPOTS = [
   {x: 28, y: 88, name: 'Kurbelgehäuse', info: 'Im Kurbelgehäuse wird das frische Gemisch vorverdichtet, bevor es durch die Überströmkanäle nach oben geht.'}
 ];
 
-const SPOTS = {simson: SIMSON_SPOTS, traktor: TRAKTOR_SPOTS, rasen: RASEN_SPOTS, zyl: ZYL_SPOTS};
+const SPOTS = {kuehlung: KUEHLUNG_SPOTS, simson: SIMSON_SPOTS, traktor: TRAKTOR_SPOTS, rasen: RASEN_SPOTS, zyl: ZYL_SPOTS};
