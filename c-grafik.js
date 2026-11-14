@@ -303,4 +303,34 @@ const ZYL_SPOTS = [
   {x: 28, y: 88, name: 'Kurbelgehäuse', info: 'Im Kurbelgehäuse wird das frische Gemisch vorverdichtet, bevor es durch die Überströmkanäle nach oben geht.'}
 ];
 
-const SPOTS = {kuehlung: KUEHLUNG_SPOTS, simson: SIMSON_SPOTS, traktor: TRAKTOR_SPOTS, rasen: RASEN_SPOTS, zyl: ZYL_SPOTS};
+// ---- Fotos vom eigenen Rasentraktor (img/foto/), mit Tipp-Punkten
+SVGS.rasenfront = '<img src="img/foto/rasen-front.jpg" alt="Rasentraktor von schräg vorn" style="display:block;width:100%;border-radius:12px">';
+SVGS.rasenmotor = '<img src="img/foto/rasen-motor.jpg" alt="Rasentraktor mit geöffneter Haube" style="display:block;width:100%;border-radius:12px">';
+const RASENFRONT_SPOTS = [
+  {x: 25, y: 41, name: 'Scheinwerfer', info: 'Zwei rechteckige Scheinwerfer sitzen vorn in der Haube. Sie leuchten die Fahrbahn in der Dämmerung aus.'},
+  {x: 27, y: 50.5, name: 'Frontgitter', info: 'Durch das Gitter strömt Luft zum Motor. Die Rippen lassen Luft durch und schützen vor Steinen und Gras.'},
+  {x: 41, y: 37, name: 'Motorhaube', info: 'Unter der Haube sitzt der Motor. Die Haube lässt sich nach vorn aufklappen.'},
+  {x: 55, y: 28, name: 'Lenkrad', info: 'Mit dem Lenkrad werden die Vorderräder eingeschlagen. Die Lenkwelle geht durch eine Gummimanschette nach unten.'},
+  {x: 70, y: 32, name: 'Sitz', info: 'Der Sitz ist auf Federn gelagert und dämpft Stöße. Beim Aufstehen schaltet ein Sicherheitsschalter in der Regel das Messer ab.'},
+  {x: 81, y: 45, name: 'Kotflügel', info: 'Der Kotflügel schützt den Fahrer vor hochgeschleuderter Erde und Gras.'},
+  {x: 84, y: 52, name: 'Hinterrad', info: 'Das Hinterrad mit breiter Lauffläche und Profil schont den Rasen und treibt den Traktor an.'},
+  {x: 55, y: 63, name: 'Vorderrad', info: 'Die kleineren Vorderräder lenken. Auch sie haben ein Rasenprofil.'},
+  {x: 69, y: 60.5, name: 'Mähdeck', info: 'Unter dem Mähdeck drehen die Messer. Das Deck hängt unter dem Rahmen und lässt sich in der Höhe verstellen.'},
+  {x: 30, y: 62, name: 'Kette an der Haube', info: 'Die Kette hält die Haube, wenn sie geöffnet wird, und verhindert, dass sie zu weit aufschwingt.'}
+];
+const RASENMOTOR_SPOTS = [
+  {x: 20, y: 28, name: 'Offene Motorhaube', info: 'Die Haube ist nach vorn aufgeklappt. So kommt man an den Motor, den Tank und den Vergaser.'},
+  {x: 33, y: 45, name: 'Scheinwerfer von innen', info: 'Von innen sieht man die Scheinwerfergehäuse. Hinter der Haubenblende sitzen die Kabel.'},
+  {x: 55, y: 49.5, name: 'Motor mit Kühlluftgitter', info: 'Der luftgekühlte Benzinmotor hat oben ein Gitter. Hier saugt ein Lüfterrad die Kühlluft an. Die Kurbelwelle steht meist senkrecht.'},
+  {x: 39, y: 53, name: 'Luftfilter-Gehäuse', info: 'Im schwarzen Gehäuse links am Motor sitzt vermutlich der Luftfilter. Er hält Staub und Schmutz von der Ansaugluft fern.'},
+  {x: 69, y: 54.5, name: 'Kraftstofftank', info: 'Der gelbliche Kunststofftank enthält das Benzin. Er sitzt neben dem Motor, damit der Kraftstoff nach unten zum Vergaser fließt.'},
+  {x: 49, y: 63.5, name: 'Vergaser', info: 'Der Vergaser mischt Luft und Benzin. Das Gasgestänge und der Kraftstoffschlauch führen zu ihm.'},
+  {x: 51, y: 56.5, name: 'Haubenstütze', info: 'Die lange Stange hält die geöffnete Haube oben und stützt sie zum Armaturenträger ab.'},
+  {x: 83, y: 47.5, name: 'Lenksäule', info: 'Die Lenksäule führt nach unten zu den Vorderrädern. Die gerippte Gummimanschette schützt sie vor Schmutz.'},
+  {x: 93, y: 34.5, name: 'Lenkrad', info: 'Mit dem Lenkrad lenkst du die Vorderräder.'},
+  {x: 84, y: 71.5, name: 'Zündschloss', info: 'Mit dem Schlüssel schaltest du die Zündung ein und startest den Motor.'},
+  {x: 93, y: 73.5, name: 'Fußplatte (Riffelblech)', info: 'Das Riffelblech ist rutschfest. So stehst du auch bei nassen Schuhen sicher.'},
+  {x: 25, y: 88, name: 'Vorderrad', info: 'Das Vorderrad hat ein Rasenprofil und eine Stahlfelge. Die Felge ist schwarz lackiert.'},
+  {x: 63, y: 85, name: 'Mähdeck mit Riemenscheibe', info: 'Oben auf dem Deck sitzt die Riemenscheibe. Ein Keilriemen überträgt die Kraft vom Motor auf die Messer.'}
+];
+const SPOTS = {rasenfront: RASENFRONT_SPOTS, rasenmotor: RASENMOTOR_SPOTS, kuehlung: KUEHLUNG_SPOTS, simson: SIMSON_SPOTS, traktor: TRAKTOR_SPOTS, rasen: RASEN_SPOTS, zyl: ZYL_SPOTS};

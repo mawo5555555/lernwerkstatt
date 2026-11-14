@@ -40,7 +40,7 @@ const X = (prompt, hint, seconds = 60) => ({type:'talk', prompt, hint, seconds})
 
 const GARAGE = [
   {id:'g1', name:'Simson S51',           need:0,    emoji:'🛵', img:'img/garage1.png', text:'Dein erstes Moped.'},
-  {id:'g2', name:'Rasentraktor',         need:80,   emoji:'🚜', img:'img/garage2.png', text:'Fürs Mähen und Üben.'},
+  {id:'g2', name:'Rasentraktor',         need:80,   emoji:'🚜', img:'img/foto/rasen-front.jpg', text:'Fürs Mähen und Üben.'},
   {id:'g3', name:'Kleiner Traktor',      need:200,  emoji:'🚜', img:'img/garage3.png', text:'Ab aufs Feld.'},
   {id:'g4', name:'Traktor mit Anhänger', need:400,  emoji:'🚛', img:'img/garage4.png', text:'Ernte einfahren.'},
   {id:'g5', name:'Mähdrescher',          need:700,  emoji:'🌾', img:'img/garage5.png', text:'Großes Gerät für große Aufgaben.'},

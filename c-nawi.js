@@ -255,3 +255,25 @@ MISSIONS.push(
 ]}
 
 );
+
+// ---- Fotos vom echten Rasentraktor
+MISSIONS.push(
+
+{id:'nawi-17', subject:'nawi', theme:'traktor', topic:'Technik-Anatomie', title:'Mein Rasentraktor: Fotocheck', sub:'Der echte Rasentraktor, Teil für Teil', min:16,
+ rlp:'Maschinen und Energie: Aufbau und Funktion von Maschinen, Kraftübertragung, Sicherheit im Umgang',
+ steps:[
+  W('Ein echter Rasentraktor', 'Das ist ein echter Rasentraktor mit Motor vorn, Sitz hinten und einem Mähdeck unter dem Fahrzeug. Er hat einen luftgekühlten Benzinmotor, Rasenreifen, einen Zündschlüssel und ein Lenkrad.\n\nIn dieser Mission schaust du dir Fotos an und lernst die Teile kennen. Die Namen sind nach dem Foto bestimmt. Wenn dir etwas anders vorkommt, frag einen Erwachsenen.', '', 'rasenfront'),
+  P('Von vorn: Teile erkunden', 'Tippe auf die Zahlen und lies, was jedes Teil macht.', 'rasenfront'),
+  P('Von vorn: Teile finden', 'Tippe der Reihe nach die gefragten Teile an.', 'rasenfront', true),
+  P('Motor und Deck: Teile erkunden', 'Hier ist die Haube offen. Tippe auf die Zahlen und lerne die Teile kennen.', 'rasenmotor'),
+  P('Motor und Deck: Teile finden', 'Tippe der Reihe nach die gefragten Teile an.', 'rasenmotor', true),
+  Q('Wozu hat der Motor oben ein Gitter?', 'Dort saugt ein Lüfter Kühlluft an. Der Motor ist luftgekühlt.', ['Dort wird Benzin eingefüllt.', 'Dort kommt das Messer heraus.', 'Es ist nur Dekoration.'], 'Ein Lüfterrad am Motor bläst Luft über die Kühlrippen.'),
+  Q('Wie kommt die Kraft vom Motor zu den Messern unter dem Deck?', 'Über einen Keilriemen', ['Über eine Kette wie beim Fahrrad', 'Über Strom', 'Über Wasser'], 'Der Riemen läuft vom Motor auf die Riemenscheibe oben auf dem Deck.'),
+  Q('Wozu haben Rasentraktoren breite Reifen mit flachem Profil?', 'Sie schonen den Rasen und geben genug Halt.', ['Damit sie lauter sind.', 'Damit sie schneller fahren.', 'Damit sie nicht rosten.'], 'Breite Reifen verteilen das Gewicht, und das Profil greift ohne tiefe Spuren.'),
+  Q('Wozu hat die Fußplatte ein Riffelmuster?', 'Damit man nicht ausrutscht', ['Damit sie leichter ist', 'Damit sie schöner leuchtet', 'Damit Wasser besser verdunstet'], 'Riffelblech ist rutschfest.'),
+  N('Das Messer dreht sich mit 3 000 Umdrehungen pro Minute. Wie viele Umdrehungen sind das pro Sekunde?', 50, '3 000 ÷ 60 = 50 Umdrehungen pro Sekunde.', {unit:'U/s'}),
+  N('Beispiel: Das Deck mäht 0,92 m breit. Wie viele Bahnen brauchst du für 9,2 m Breite?', 10, '9,2 ÷ 0,92 = 10 Bahnen.', {unit:'Bahnen', hint:'Teile die Gesamtbreite durch die Bahnbreite.'}),
+  X('Erkläre in eigenen Worten: Wie kommt die Kraft vom Motor bis zum Messer, und wozu ist der Sicherheitsschalter da?', 'Tipp: Motor, Riemen, Messer. Sprich in kleinen Schritten.', 60)
+]}
+
+);

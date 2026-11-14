@@ -1,7 +1,7 @@
 'use strict';
 const $ = s => document.querySelector(s);
 const KEY = 'wt-state-v1';
-const VERSION = '1.2';
+const VERSION = '1.3';
 let S;
 try { S = JSON.parse(localStorage.getItem(KEY)) } catch (e) {}
 S = Object.assign({points: 0, days: [], done: {}, stars: {}, miss: {}, log: [], ratings: [], theme: 'simson', subj: 'mathe', name: '', daily: {}, goalDate: ''}, S || {});
