@@ -4,13 +4,17 @@ Lern-App (PWA) für den Stoff der 6. Klasse in Brandenburg: Deutsch, Mathe, Engl
 
 Version 1.2 (Test).
 
+## Online
+
+https://mawo5555555.github.io/lernwerkstatt/ (GitHub Pages). Auf dem iPhone oder iPad in Safari öffnen, dann Teilen und „Zum Home-Bildschirm“.
+
 ## Starten
 
 ```bash
 python3 -m http.server 8731
 ```
 
-Dann `http://localhost:8731` öffnen. Für iPhone und iPad muss die App über HTTPS erreichbar sein (zum Beispiel über einen eigenen Webspace), dann „Zum Home-Bildschirm“.
+Dann `http://localhost:8731` öffnen. 
 
 ## Aufbau
 
