@@ -39,10 +39,11 @@ const L = (title, text, sliders, out) => ({type:'slider', title, text, sliders, 
 const X = (prompt, hint, seconds = 60) => ({type:'talk', prompt, hint, seconds});
 
 const GARAGE = [
-  {id:'g1', name:'Simson S51',           need:0,    emoji:'🛵', img:'img/garage1.png', text:'Dein erstes Moped.'},
+  {id:'g1', name:'Simson S51',           need:0,    emoji:'🛵', svg:'simson', img:'img/garage1.png', text:'Dein erstes Moped.'},
   {id:'g2', name:'Rasentraktor',         need:80,   emoji:'🚜', img:'img/foto/rasen-front.jpg', text:'Fürs Mähen und Üben.'},
   {id:'g3', name:'Kleiner Traktor',      need:200,  emoji:'🚜', img:'img/garage3.png', text:'Ab aufs Feld.'},
   {id:'g4', name:'Traktor mit Anhänger', need:400,  emoji:'🚛', img:'img/garage4.png', text:'Ernte einfahren.'},
+  {id:'g9', name:'Simson SR50',          need:550,  emoji:'🛵', svg:'sr50', img:'img/garage9.png', text:'Mit Verkleidung und Trittbrett.'},
   {id:'g5', name:'Mähdrescher',          need:700,  emoji:'🌾', img:'img/garage5.png', text:'Großes Gerät für große Aufgaben.'},
   {id:'g6', name:'Simson Schwalbe',      need:1000, emoji:'🛵', img:'img/garage6.png', text:'Der Klassiker für die Sammlung.'},
   {id:'g7', name:'Unimog',               need:1400, emoji:'🚛', img:'img/garage7.png', text:'Geht überall durch.'},

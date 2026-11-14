@@ -1,7 +1,7 @@
 'use strict';
 const $ = s => document.querySelector(s);
 const KEY = 'wt-state-v1';
-const VERSION = '1.3';
+const VERSION = '1.4';
 let S;
 try { S = JSON.parse(localStorage.getItem(KEY)) } catch (e) {}
 S = Object.assign({points: 0, days: [], done: {}, stars: {}, miss: {}, log: [], ratings: [], theme: 'simson', subj: 'mathe', name: '', daily: {}, goalDate: ''}, S || {});
@@ -94,7 +94,7 @@ function home(p) {
   <div class="card gcard" onclick="go('garage')"><div class="gimg">${gimg(g)}</div><div style="flex:1"><b>${esc(g.name)}</b>
   ${nxt ? `<div class="m">Noch ${nxt.need - S.points} Punkte bis ${esc(nxt.name)}</div><div class="bar" style="margin-top:8px"><i style="width:${Math.max(4, 100 * (S.points - g.need) / (nxt.need - g.need))}%"></i></div>` : '<div class="m">Alles freigeschaltet!</div>'}</div></div>`;
 }
-const gimg = g => `<img src="${g.img}" alt="" onerror="this.replaceWith(document.createTextNode('${g.emoji}'))">`;
+const gimg = g => g.svg && SVGS[g.svg] ? `<div style="width:100%;padding:2px">${SVGS[g.svg]}</div>` : `<img src="${g.img}" alt="" onerror="this.replaceWith(document.createTextNode('${g.emoji}'))">`;
 
 function missions() {
   const list = byS(S.subj); let last = '', out = '';

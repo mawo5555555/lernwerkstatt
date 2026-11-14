@@ -277,3 +277,24 @@ MISSIONS.push(
 ]}
 
 );
+
+// ---- Simson SR50
+MISSIONS.push(
+
+{id:'nawi-18', subject:'nawi', theme:'tuning', topic:'Technik-Anatomie', title:'Simson SR50: Verkleidung und Technik', sub:'Das Moped mit Trittbrett und offenen Federn', min:14,
+ rlp:'Maschinen und Energie: Aufbau von Fahrzeugen, Federung und Kraftübertragung, Vergleich von Bauarten',
+ steps:[
+  W('Der SR50', 'Der SR50 ist ein Simson-Moped mit Verkleidung. Anders als die S51 hat er ein Trittbrett zum bequemen Einsteigen, ein Beinschild, das vor Wind schützt, einen Mittelständer, eine lange Sitzbank und eine Lenkerverkleidung mit rundem Scheinwerfer. Vorn liegen die Federn der Teleskopgabel offen.\n\nUnter der Verkleidung steckt ein luftgekühlter Zweitaktmotor mit etwa 50 cm³ und Kettenantrieb.',
+    'Viele Händler bieten Zylinder-Sätze an, die für die S51, die Schwalbe KR51/2 und den SR50 passen. Das liegt an der gleichen Motorfamilie.', 'sr50'),
+  P('Teile erkunden', 'Tippe auf die Zahlen und lies, was jedes Teil macht. Die Zeichnung ist nach Fotos entstanden, sie zeigt eine rote Variante.', 'sr50'),
+  P('Teile finden', 'Tippe der Reihe nach die gefragten Teile an.', 'sr50', true),
+  Q('Welche Besonderheit hat der SR50 gegenüber der S51?', 'Er hat ein Trittbrett, ein Beinschild und eine Verkleidung.', ['Er hat keinen Motor.', 'Er hat vier Räder.', 'Er hat einen Dieselmotor.'], 'Der SR50 ist ein Moped mit Verkleidung, die S51 ist ein Mokick mit offenem Rahmen.'),
+  Q('Wozu dient das Beinschild?', 'Es schützt die Beine vor Wind und Spritzwasser.', ['Es kühlt den Motor.', 'Es macht Licht.', 'Es hält die Kette.'], 'Das Beinschild verdeckt Beine und Teile des Rahmens.'),
+  Q('Was sieht man an der Gabel des SR50 deutlich?', 'Die offenen Federn', ['Einen Ölfilter', 'Einen Kühler', 'Ein Zahnrad'], 'Teleskopgabel mit freiliegenden Federn.'),
+  Q('Wozu hat der SR50 einen Mittelständer?', 'Damit er fest steht und das Hinterrad frei ist, zum Beispiel für die Kettenpflege.', ['Damit er schneller fährt.', 'Damit er lauter wird.', 'Damit er mehr Benzin spart.'], 'Auf dem Mittelständer steht das Moped stabil.'),
+  Q('Was haben S51, Schwalbe KR51/2 und SR50 gemeinsam?', 'Die gleiche Motorfamilie: luftgekühlter Zweitakter mit etwa 50 cm³', ['Dieselmotor und Wasserkühlung', 'Elektroantrieb', 'Allradantrieb'], 'Deshalb passen viele Tuning-Zylinder für alle drei.'),
+  N('Beispiel: Der Tank fasst 6 Liter, der Verbrauch beträgt 3 Liter auf 100 km. Wie weit kommst du mit einer Tankfüllung?', 200, '6 l ÷ 3 l je 100 km = 2 · 100 km = 200 km.', {unit:'km'}),
+  X('Vergleiche in drei Sätzen: Was ist beim SR50 anders als bei der S51?', 'Tipp: Trittbrett, Beinschild, Mittelständer. Mach kleine Pausen.', 60)
+]}
+
+);

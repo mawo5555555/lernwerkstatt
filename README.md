@@ -2,7 +2,7 @@
 
 Lern-App (PWA) für den Stoff der 6. Klasse in Brandenburg: Deutsch, Mathe, Englisch und Naturwissenschaften. Die Aufgaben sind in die Welt von Simson, Tuning, Traktor, Rasentraktor, Landwirtschaft und Sport eingebettet. Läuft im Browser, auf iPhone und iPad als Home-Bildschirm-App. Der Fortschritt liegt lokal im Gerät (localStorage).
 
-Version 1.3 (Test).
+Version 1.4 (Test).
 
 ## Online
 
@@ -23,7 +23,7 @@ Dann `http://localhost:8731` öffnen.
 | `index.html` | Oberfläche und Styles |
 | `app.js` | Logik: Tagesplan, Missionen, Aufgabentypen, Punkte, Garage, Elternbereich |
 | `content.js` | Welten, Fächer, Garage und Bausteine (`W`, `Q`, `N`, `T`, `M`, `O`, `L`, `P`, `X`) |
-| `c-grafik.js` | Technische Zeichnungen als SVG (Simson, Traktor, Rasentraktor, Zweitaktmotor) |
+| `c-grafik.js` | Technische Zeichnungen als SVG (Simson S51, Simson SR50, Traktor, Rasentraktor, Zweitaktmotor, Kühlkreislauf) |
 | `c-mathe.js`, `c-deutsch.js`, `c-englisch.js`, `c-nawi.js` | Missionen je Fach |
 | `c-sprechen.js` | kleine Sprech-Übungen (Bestandteil von Deutsch) |
 | `sw.js`, `manifest.webmanifest` | Offline-Cache und Installation |

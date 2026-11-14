@@ -11,6 +11,7 @@ const DEFS = `<defs>
  <linearGradient id="gRed" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff6f5e"/><stop offset=".45" stop-color="#d3382a"/><stop offset="1" stop-color="#7a1810"/></linearGradient>
  <linearGradient id="gYel" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffe27a"/><stop offset="1" stop-color="#c79a14"/></linearGradient>
  <linearGradient id="gGlass" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#bfe9ff"/><stop offset="1" stop-color="#3d7ea0"/></linearGradient>
+ <linearGradient id="gWhite" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".6" stop-color="#e6e6ea"/><stop offset="1" stop-color="#b3b3b9"/></linearGradient>
  <radialGradient id="gLamp" cx=".4" cy=".4" r=".7"><stop offset="0" stop-color="#fff7c2"/><stop offset=".6" stop-color="#ffd60a"/><stop offset="1" stop-color="#b8860b"/></radialGradient>
 </defs>`;
 const svg = (body, vb = '0 0 480 270') => `<svg viewBox="${vb}" width="100%" xmlns="http://www.w3.org/2000/svg" style="display:block">${DEFS}${body}</svg>`;
@@ -117,6 +118,66 @@ const SIMSON_SPOTS = [
   {x: 26.5, y: 47.4, name: 'Federbein', info: 'Hinten dämpfen zwei Federbeine Stöße. Eine Feder fängt den Schlag auf, der Dämpfer bremst das Nachschwingen.'},
   {x: 73.3, y: 40.7, name: 'Teleskopgabel', info: 'Die Gabel vorn federt und dämpft. Das Öl im Inneren bremst das Einfedern.'},
   {x: 37.1, y: 83.0, name: 'Kickstarter', info: 'Mit dem Kickstarter tritt man den Motor an. Dabei dreht sich die Kurbelwelle, und der Motor kann anspringen.'}
+];
+
+// ---- Simson SR50 (Seitenansicht, Verkleidung, Trittbrett, Mittelständer)
+(() => {
+  let rib = '', i; for (i = 0; i < 13; i++) rib += `<line x1="${112 + i * 10}" y1="${98 - i * .3}" x2="${110 + i * 10}" y2="${112 - i * .3}" stroke="#34343a" stroke-width="1.6"/>`;
+  let step = ''; for (i = 0; i < 9; i++) step += `<line x1="${196 + i * 11}" y1="187" x2="${194 + i * 11}" y2="194" stroke="#3b3b40" stroke-width="1.6"/>`;
+  SVGS.sr50 = svg(`<ellipse cx="240" cy="238" rx="215" ry="6" fill="rgba(0,0,0,.45)"/><line x1="8" y1="236" x2="472" y2="236" stroke="#3a3a3c" stroke-width="1.5" stroke-dasharray="7 7"/>
+  <!-- Mittelständer -->
+  <path d="M232 206 L220 236 M256 206 L268 236" fill="none" stroke="#1a1a1c" stroke-width="5.4" stroke-linecap="round"/><path d="M214 236 h14 M262 236 h14" stroke="#58585c" stroke-width="3.4" stroke-linecap="round"/>
+  ${spokeWheel(105, 175, 60)}${spokeWheel(375, 175, 60)}
+  <!-- Motor-Getriebe unten, Kickstarter, Auspuff -->
+  <rect x="158" y="188" width="108" height="30" rx="11" fill="url(#gAlu)" stroke="#4d4d52" stroke-width="1.6"/><circle cx="236" cy="203" r="12" fill="url(#gAlu)" stroke="#47474b" stroke-width="1.2"/>${bolt(230, 198)}${bolt(242, 198)}${bolt(230, 208)}${bolt(242, 208)}<circle cx="172" cy="204" r="8" fill="url(#gAlu)" stroke="#47474b" stroke-width="1.2"/>
+  <path d="M184 216 L168 232 L160 234" fill="none" stroke="#d1d1d6" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round"/><rect x="150" y="230" width="16" height="6" rx="3" fill="#18181a"/>
+  <path d="M262 198 C284 200 288 222 262 223 L196 224" fill="none" stroke="#2a2a2c" stroke-width="8" stroke-linecap="round"/><path d="M262 198 C284 200 288 222 262 223 L196 224" fill="none" stroke="#a9a9ae" stroke-width="5.4" stroke-linecap="round"/>
+  <rect x="86" y="212" width="116" height="17" rx="8.5" fill="url(#gChrome)" stroke="#4a4a4e" stroke-width="1.3"/><g stroke="#4a4a4e" stroke-width="1"><line x1="112" y1="213" x2="112" y2="228"/><line x1="176" y1="213" x2="176" y2="228"/></g>
+  <!-- Schwinge, Federbein -->
+  <path d="M168 200 L108 176" fill="none" stroke="#18181a" stroke-width="7" stroke-linecap="round"/>
+  <path d="M126 170 L146 118" fill="none" stroke="#101012" stroke-width="7" stroke-linecap="round"/><path d="${coil(144, 124, 152, 100, 7, 6)}" fill="none" stroke="#d1d1d6" stroke-width="1.8" stroke-linejoin="round"/><path d="M126 170 L144 124" stroke="#bfbfc4" stroke-width="3" stroke-linecap="round"/><circle cx="126" cy="171" r="3.4" fill="#d1d1d6" stroke="#333"/><circle cx="153" cy="99" r="3.4" fill="#d1d1d6" stroke="#333"/>
+  <!-- hinterer Kotflügel, Rücklicht, Blinker -->
+  <path d="M43 152.4 A66 66 0 0 1 159 137" fill="none" stroke="#0c0c0e" stroke-width="9" stroke-linecap="round"/><path d="M43 152.4 A66 66 0 0 1 159 137" fill="none" stroke="#3b3b40" stroke-width="6" stroke-linecap="round"/><path d="M48 150 A63 63 0 0 1 130 132" fill="none" stroke="#7b7b82" stroke-width="1.2" opacity=".7"/>
+  <rect x="34" y="142" width="14" height="9" rx="3" fill="#ff9f0a" stroke="#5d3b00" stroke-width=".9"/><rect x="30" y="156" width="9" height="9" rx="3" fill="#d3382a" stroke="#5c0f09" stroke-width=".9"/>
+  <path d="M126 168 C138 188 172 196 222 198 L296 198 L296 186 L222 188 L176 184 C160 180 148 172 140 158 Z" fill="url(#gRed)" stroke="#5c0f09" stroke-width="1.6"/>
+  <!-- weißes Tankgehäuse unter der Sitzbank -->
+  <path d="M138 118 C130 140 140 174 176 186 L216 190 C222 162 224 132 218 114 Z" fill="url(#gWhite)" stroke="#a5a5ab" stroke-width="1.6"/><path d="M146 126 C142 146 150 166 172 178" fill="none" stroke="#ffffff" stroke-width="2" opacity=".8"/><rect x="176" y="136" width="34" height="9" rx="4" fill="#d9d9de" stroke="#a5a5ab" stroke-width=".8"/>
+  <!-- Sitzbank mit Haltebügel -->
+  <path d="M100 106 C100 94 118 92 140 92 L238 88 C252 88 256 97 250 103 L234 114 L108 119 C99 119 96 114 100 106 Z" fill="#17171a" stroke="#55555a" stroke-width="1.6"/>${rib}<path d="M110 96 L240 92" fill="none" stroke="#4a4a50" stroke-width="1.4"/>
+  <path d="M104 108 C86 102 80 116 88 126" fill="none" stroke="#e5e5ea" stroke-width="5" stroke-linecap="round"/><path d="M104 108 C86 102 80 116 88 126" fill="none" stroke="#7a7a7f" stroke-width="1.4" stroke-linecap="round"/>
+  <!-- Trittbrett -->
+  <path d="M186 187 L300 187 L304 196 L184 197 Z" fill="#1c1c1e" stroke="#58585c" stroke-width="1.4"/>${step}<path d="M180 197 L304 196" stroke="#c8c8cd" stroke-width="2.4"/>
+  <!-- Beinschild -->
+  <path d="M324 62 C304 84 294 122 290 158 L284 186 L222 190 C246 176 262 150 270 126 C278 100 296 78 318 56 Z" fill="url(#gRed)" stroke="#5c0f09" stroke-width="1.8"/><path d="M314 72 C300 98 294 132 288 164" fill="none" stroke="#ffb3a8" stroke-width="1.8" opacity=".65"/><path d="M286 150 L300 150 L300 186 L284 186" fill="#a8261a" stroke="#5c0f09" stroke-width="1.2"/>
+  <!-- Teleskopgabel mit sichtbaren Federn, Kotflügel -->
+  <path d="M321 137 A66 66 0 0 1 435 147" fill="none" stroke="#0c0c0e" stroke-width="9" stroke-linecap="round"/><path d="M321 137 A66 66 0 0 1 435 147" fill="none" stroke="#3b3b40" stroke-width="6" stroke-linecap="round"/><path d="M330 132 A62 62 0 0 1 420 128" fill="none" stroke="#7b7b82" stroke-width="1.2" opacity=".7"/>
+  <path d="M334 68 L372 168" fill="none" stroke="#6e6e73" stroke-width="10" stroke-linecap="round"/><path d="M334 68 L372 168" fill="none" stroke="#f2f2f6" stroke-width="7" stroke-linecap="round"/>
+  <path d="${coil(338, 78, 354, 120, 9, 6.4)}" fill="none" stroke="#e5e5ea" stroke-width="2" stroke-linejoin="round"/><path d="M354 120 L372 168" fill="none" stroke="#18181a" stroke-width="9" stroke-linecap="round"/><path d="M354 120 L372 168" fill="none" stroke="#4a4a4e" stroke-width="2.4" stroke-linecap="round"/>
+  <circle cx="375" cy="175" r="4.4" fill="#c8c8cd" stroke="#333"/>
+  <!-- Lenkerverkleidung, Scheinwerfer, Blinker, Lenker, Spiegel -->
+  <path d="M322 56 C326 40 356 40 372 52 C382 62 380 82 366 90 L336 92 C324 86 318 72 322 56 Z" fill="#1d1d21" stroke="#5a5a60" stroke-width="1.6"/><path d="M330 50 C346 44 362 48 370 56" fill="none" stroke="#6a6a70" stroke-width="1.4" opacity=".8"/>
+  <circle cx="356" cy="70" r="16" fill="url(#gChrome)" stroke="#555" stroke-width="1.2"/><circle cx="356" cy="70" r="11.4" fill="url(#gLamp)" stroke="#8a6a00" stroke-width=".8"/>
+  <rect x="298" y="94" width="14" height="9" rx="3" fill="#ff9f0a" stroke="#5d3b00" stroke-width=".9"/><rect x="356" y="86" width="12" height="7" rx="3" fill="#ff9f0a" stroke="#5d3b00" stroke-width=".9"/>
+  <path d="M322 50 L304 44" fill="none" stroke="#0c0c0e" stroke-width="7.6" stroke-linecap="round"/><path d="M312 52 L328 56" fill="none" stroke="#e5e5ea" stroke-width="2.6" stroke-linecap="round"/>
+  <path d="M312 46 L300 20" fill="none" stroke="#9a9aa0" stroke-width="2"/><circle cx="298" cy="14" r="9.4" fill="#17171a" stroke="#6a6a70" stroke-width="1.4"/><circle cx="298" cy="14" r="6.4" fill="#cfd3d8"/>
+  <path d="M326 50 L338 22" fill="none" stroke="#d1d1d6" stroke-width="2.2"/><circle cx="340" cy="16" r="10" fill="#0e0e10" stroke="#8a8a90" stroke-width="1.4"/><circle cx="340" cy="16" r="7" fill="#e5e9ee"/>`);
+})();
+const SR50_SPOTS = [
+  {x: 35.4, y: 37.8, name: 'Sitzbank', info: 'Die lange Sitzbank hat oben Rippen und bietet Platz für zwei. Unter ihr sitzt das Tankgehäuse.'},
+  {x: 35.8, y: 55.6, name: 'Tankgehäuse', info: 'Der weiße Kunststoffkörper unter der Sitzbank enthält den Tank für das Gemisch aus Benzin und Zweitaktöl.'},
+  {x: 18.3, y: 42.2, name: 'Haltebügel', info: 'Hinten kann sich der Beifahrer am Bügel festhalten. Er dient auch zum Aufbocken.'},
+  {x: 28.8, y: 51.1, name: 'Federbein', info: 'Das Federbein hinten fängt Stöße ab. Die Feder ist sichtbar, der Dämpfer sitzt dahinter.'},
+  {x: 60.8, y: 44.4, name: 'Beinschild', info: 'Das Beinschild schützt die Beine vor Wind und Spritzwasser. Es sitzt hinter der Gabel.'},
+  {x: 73.3, y: 39.3, name: 'Teleskopgabel mit Federn', info: 'Die Gabel vorn federt. Beim SR50 liegen die Federn offen sichtbar frei.'},
+  {x: 73.3, y: 25.2, name: 'Rundscheinwerfer', info: 'Der runde Scheinwerfer sitzt in der Lenkerverkleidung. Er wird vom Stromkreis der Lichtmaschine versorgt.'},
+  {x: 70.4, y: 5.2, name: 'Rückspiegel', info: 'Mit den Spiegeln siehst du, was hinter dir ist. Beide Seiten gehören zur Ausstattung.'},
+  {x: 63.8, y: 35.6, name: 'Blinker', info: 'Mit den Blinkern zeigst du an, wohin du abbiegen willst. Sie leuchten orange.'},
+  {x: 50, y: 70.7, name: 'Trittbrett', info: 'Das Trittbrett ermöglicht einen bequemen Durchstieg. Es hat Gummi mit Rippen für Halt.'},
+  {x: 29.2, y: 79.3, name: 'Auspuff-Endtopf', info: 'Der Auspuff führt unter dem Trittbrett nach hinten. Der Endtopf dämpft den Lärm.'},
+  {x: 43.8, y: 74, name: 'Motor und Getriebe', info: 'Der Zweitaktmotor mit Getriebe sitzt tief zwischen den Rädern, das senkt den Schwerpunkt. Er gehört zur selben Motorfamilie wie bei S51 und Schwalbe.'},
+  {x: 50, y: 84.4, name: 'Mittelständer', info: 'Auf dem Mittelständer steht das Moped fest. Das Hinterrad ist dann frei, praktisch für Kettenpflege.'},
+  {x: 68.8, y: 75.9, name: 'Vorderrad', info: 'Das Vorderrad hat eine Trommelbremse und Speichen.'},
+  {x: 11.5, y: 76, name: 'Hinterrad', info: 'Das Hinterrad wird über die Kette angetrieben.'}
 ];
 
 // ---- Traktor (Schema, seitlich, angelehnt an ostdeutsche Radtraktoren)
@@ -333,4 +394,4 @@ const RASENMOTOR_SPOTS = [
   {x: 25, y: 88, name: 'Vorderrad', info: 'Das Vorderrad hat ein Rasenprofil und eine Stahlfelge. Die Felge ist schwarz lackiert.'},
   {x: 63, y: 85, name: 'Mähdeck mit Riemenscheibe', info: 'Oben auf dem Deck sitzt die Riemenscheibe. Ein Keilriemen überträgt die Kraft vom Motor auf die Messer.'}
 ];
-const SPOTS = {rasenfront: RASENFRONT_SPOTS, rasenmotor: RASENMOTOR_SPOTS, kuehlung: KUEHLUNG_SPOTS, simson: SIMSON_SPOTS, traktor: TRAKTOR_SPOTS, rasen: RASEN_SPOTS, zyl: ZYL_SPOTS};
+const SPOTS = {sr50: SR50_SPOTS, rasenfront: RASENFRONT_SPOTS, rasenmotor: RASENMOTOR_SPOTS, kuehlung: KUEHLUNG_SPOTS, simson: SIMSON_SPOTS, traktor: TRAKTOR_SPOTS, rasen: RASEN_SPOTS, zyl: ZYL_SPOTS};
