@@ -1,7 +1,7 @@
 'use strict';
 const $ = s => document.querySelector(s);
 const KEY = 'wt-state-v1';
-const VERSION = '1.0';
+const VERSION = '1.1';
 let S;
 try { S = JSON.parse(localStorage.getItem(KEY)) } catch (e) {}
 S = Object.assign({points: 0, days: [], done: {}, stars: {}, miss: {}, log: [], ratings: [], theme: 'simson', subj: 'mathe', name: '', daily: {}}, S || {});
@@ -184,7 +184,7 @@ const STEP = {
     return `<h1>${esc(s.title)}</h1><p class="m">${esc(s.text || '')}</p><div class="card" id="oo" style="min-height:54px"><span class="m">Hier entsteht die richtige Reihenfolge …</span></div>
     <div id="op">${run.cur.idx.map(i => `<button class="mb wide" id="oi${i}" onclick="opick(${i})">${esc(s.items[i])}</button>`).join('')}</div><div id="fb"></div>${nextBtn('Weiter', true)}`; },
   parts: s => { const sp = SPOTS[s.svg]; run.cur.n = 0; run.cur.mist = 0; run.cur.todo = s.ask ? shuffle(sp.map((_, i) => i)) : []; run.cur.hit = [];
-    return `<h1>${esc(s.title)}</h1><p class="m">${esc(s.text || '')}</p><div class="card art"><div class="pw">${SVGS[s.svg]}${sp.map((p, i) => `<button class="hs" id="hs${i}" style="left:${p.x}%;top:${p.y}%" onclick="hpick(${i})">${s.ask ? '' : i + 1}</button>`).join('')}</div></div>
+    return `<h1>${esc(s.title)}</h1><p class="m">${esc(s.text || '')}</p><div class="card art"><button class="zoomb" onclick="this.parentNode.classList.toggle('z');this.textContent=this.parentNode.classList.contains('z')?'🔍 Verkleinern':'🔍 Vergrößern'">🔍 Vergrößern</button><div class="pwo"><div class="pw">${SVGS[s.svg]}${sp.map((p, i) => `<button class="hs" id="hs${i}" style="left:${p.x}%;top:${p.y}%" onclick="hpick(${i})">${s.ask ? '' : i + 1}</button>`).join('')}</div></div></div>
     <div class="card" id="hi"><p class="m">${s.ask ? 'Los geht’s …' : 'Tippe auf die Zahlen und lerne die Teile kennen.'}</p></div><div id="fb"></div>${nextBtn('Weiter', !!s.ask)}`; },
   slider: s => `<h1>${esc(s.title)}</h1><p class="m">${esc(s.text || '')}</p>${s.sliders.map(x => `<div class="sld"><div class="row sp"><span>${esc(x.label)}</span><b id="sv_${x.id}"></b></div><input type="range" id="sr_${x.id}" min="${x.min}" max="${x.max}" step="${x.step}" value="${x.val}" oninput="slid()"></div>`).join('')}
     <div class="card lab" id="lab"></div>${nextBtn()}`,
