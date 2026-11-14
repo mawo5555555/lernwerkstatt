@@ -1,10 +1,10 @@
 'use strict';
 const $ = s => document.querySelector(s);
 const KEY = 'wt-state-v1';
-const VERSION = '1.4';
+const VERSION = '1.5';
 let S;
 try { S = JSON.parse(localStorage.getItem(KEY)) } catch (e) {}
-S = Object.assign({points: 0, days: [], done: {}, stars: {}, miss: {}, log: [], ratings: [], theme: 'simson', subj: 'mathe', name: '', daily: {}, goalDate: ''}, S || {});
+S = Object.assign({points: 0, days: [], done: {}, stars: {}, miss: {}, log: [], ratings: [], theme: 'simson', subj: 'mathe', name: '', daily: {}, goalDate: '', sound: true, rev: {}}, S || {});
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)) } catch (e) {} };
 const pad = n => String(n).padStart(2, '0');
 const ymd = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
@@ -23,6 +23,7 @@ const QT = ['quiz', 'num', 'text', 'match', 'order', 'parts'];
 const QIDX = {};
 MISSIONS.forEach(m => m.steps.forEach((s, i) => { if (QT.includes(s.type) && (s.type !== 'parts' || s.ask)) { s.qid = m.id + '#' + i; QIDX[s.qid] = {m, s} } }));
 const SUBJ_ORDER = ['mathe', 'deutsch', 'englisch', 'nawi'];
+const TAB_SUBJ = [...SUBJ_ORDER, 'technik'];
 const byS = k => [...MISSIONS.filter(m => m.subject === k && !m.speech), ...MISSIONS.filter(m => m.subject === k && m.speech)];
 const stageDone = st => st.ids.every(id => (S.stars[id] || 0) >= 2);
 const projectDone = () => PROJECT.stages.every(stageDone);
@@ -39,16 +40,43 @@ function streak() {
 const dayIdx = () => { const d = new Date(); return Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 864e5) };
 const doneToday = id => S.log.some(e => e.d === today() && e.id === id);
 const pickFor = k => { const l = byS(k); return l.find(m => !S.done[m.id]) || l.slice().sort((a, b) => (S.stars[a.id] || 0) - (S.stars[b.id] || 0))[0] || l[0] };
+const nextPro = () => { const l = byS('technik'); return l.find(m => !S.done[m.id]) || l.slice().sort((x, y) => (S.stars[x.id] || 0) - (S.stars[y.id] || 0))[0] };
 function plan() {
   if (S.daily.d !== today()) {
     const k = SUBJ_ORDER[dayIdx() % 4], k2 = SUBJ_ORDER[(dayIdx() + 1) % 4];
-    S.daily = {d: today(), main: pickFor(k).id, bonus: pickFor(k2).id}; save();
+    S.daily = {d: today(), main: pickFor(k).id, bonus: pickFor(k2).id, pro: nextPro().id}; save();
   }
-  return {main: MISSIONS.find(m => m.id === S.daily.main), bonus: MISSIONS.find(m => m.id === S.daily.bonus)};
+  return {main: MISSIONS.find(m => m.id === S.daily.main), bonus: MISSIONS.find(m => m.id === S.daily.bonus), pro: MISSIONS.find(m => m.id === S.daily.pro) || nextPro()};
 }
 const theme = id => THEMES[id];
 function setAccent(c) { document.documentElement.style.setProperty('--ac', c) }
 const starStr = n => '★'.repeat(n) + '☆'.repeat(3 - n);
+const REV_INT = [3, 7, 14, 30];
+const addDays = n => { const d = new Date(); d.setDate(d.getDate() + n); return ymd(d) };
+const dueMissions = () => Object.entries(S.rev).filter(([id, r]) => r.due <= today() && MISSIONS.some(m => m.id === id)).map(([id]) => id);
+const rankOf = pts => { let i = 0; RANKS.forEach((r, k) => { if (pts >= r.p) i = k }); return {cur: RANKS[i], next: RANKS[i + 1], i} };
+function tone(f, d, at = 0, type = 'sine', g = .12) {
+  if (!S.sound) return;
+  try { audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)(); const o = audioCtx.createOscillator(), v = audioCtx.createGain(), t0 = audioCtx.currentTime + at;
+    o.type = type; o.frequency.value = f; v.gain.setValueAtTime(g, t0); v.gain.exponentialRampToValueAtTime(.0008, t0 + d); o.connect(v); v.connect(audioCtx.destination); o.start(t0); o.stop(t0 + d + .02) } catch (e) {}
+}
+const snd = k => { if (k === 'ok') { tone(660, .12); tone(880, .18, .1) } else if (k === 'bad') tone(190, .22, 0, 'triangle', .1); else if (k === 'win') [523, 659, 784, 1047].forEach((f, i) => tone(f, .28, i * .12)) };
+function confetti() {
+  if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const box = document.createElement('div'); box.className = 'confetti'; const cols = ['#ff453a', '#ff9f0a', '#ffd60a', '#30d158', '#0a84ff', '#bf5af2'];
+  for (let i = 0; i < 46; i++) { const p = document.createElement('i'); p.style.cssText = `left:${Math.random() * 100}%;background:${cols[i % 6]};animation-delay:${Math.random() * .5}s;animation-duration:${1.6 + Math.random() * 1.2}s;transform:rotate(${Math.random() * 360}deg)`; box.appendChild(p) }
+  document.body.appendChild(box); setTimeout(() => box.remove(), 3400);
+}
+const ringsHTML = () => {
+  const dayN = new Set(S.log.filter(e => e.d === today() && e.id !== 'box').map(e => e.id)).size;
+  const wk = [...Array(7)].map((_, i) => { const d = new Date(); d.setDate(d.getDate() - i); return S.days.includes(ymd(d)) }).filter(Boolean).length;
+  const all = MISSIONS.filter(m => !m.speech), mast = Math.round(100 * all.filter(m => (S.stars[m.id] || 0) >= 2).length / all.length);
+  const ring = (r, col, frac) => { const L = 2 * Math.PI * r; return `<circle cx="60" cy="60" r="${r}" fill="none" stroke="${col}" stroke-opacity=".22" stroke-width="10"/><circle class="rg" cx="60" cy="60" r="${r}" fill="none" stroke="${col}" stroke-width="10" stroke-linecap="round" transform="rotate(-90 60 60)" style="stroke-dasharray:0 ${L}" data-v="${Math.max(.001, Math.min(1, frac)) * L} ${L}"/>` };
+  const rk = rankOf(S.points), nx = rk.next;
+  return `<div class="card ringcard"><svg viewBox="0 0 120 120" width="112" height="112">${ring(52, '#fa114f', dayN / 2)}${ring(40, '#92e82a', wk / 5)}${ring(28, '#1eeaef', mast / 100)}</svg>
+  <div class="rl"><div><span style="color:#fa114f">●</span> <b>Heute</b> ${Math.min(dayN, 2)}/2 Missionen</div><div><span style="color:#92e82a">●</span> <b>Woche</b> ${wk}/5 Tage</div><div><span style="color:#1eeaef">●</span> <b>Können</b> ${mast} %</div>
+  <div class="rk">${rk.cur.e} <b>${rk.cur.n}</b>${nx ? ` · noch ${nx.p - S.points} Punkte bis ${nx.e} ${nx.n}` : ' · höchster Rang'}</div></div></div>`;
+};
 
 function go(v) { clearTimers(); run = null; view = v; render() }
 
@@ -62,30 +90,33 @@ function render() {
   else if (view === 'garage') { setAccent('#e0b43a'); a.innerHTML = garage() }
   else if (view === 'parents') { setAccent('#3b8cff'); a.innerHTML = parents() }
   else if (view === 'run') step();
+  if (view === 'home') requestAnimationFrame(() => requestAnimationFrame(() => document.querySelectorAll('.rg').forEach(c => { c.style.strokeDasharray = c.dataset.v })));
   window.scrollTo(0, 0);
 }
 
 const mItem = (m, tag = '') => { const t = theme(m.theme), n = S.stars[m.id] || 0, d = S.done[m.id] || 0;
   return `<button class="item" onclick="start('${m.id}')"><div class="dot" style="background:${t.color}33">${t.emoji}</div>
-  <div style="flex:1"><b>${esc(m.title)}</b><span class="m">${esc(m.sub)} · ${m.min} Min.${tag}</span></div>
+  <div style="flex:1"><b>${esc(m.title)}</b><span class="m">${esc(m.sub)} · ${m.min} Min.${m.pro ? ' · <b style="color:#ff453a">PROFI</b>' : ''}${tag}</span></div>
   ${d ? (m.speech ? `<span class="done">✓ ${d}×</span>` : `<span class="stars">${starStr(n)}</span>`) : ''}</button>`; };
 
 function home(p) {
   const m = p.main, sub = SUBJECTS[m.subject], t = theme(m.theme), st = streak(), done = doneToday(m.id);
   const g = [...GARAGE].reverse().find(x => S.points >= x.need);
   const nxt = GARAGE.find(x => x.need > S.points);
-  const bonusDone = doneToday(p.bonus.id), box = missCount();
+  const bonusDone = doneToday(p.bonus.id), box = missCount(), due = dueMissions().length;
   const hour = new Date().getHours(), hi = hour < 11 ? 'Guten Morgen' : hour < 18 ? 'Hallo' : 'Guten Abend';
   return `<div class="top"><div><div class="m">${new Date().toLocaleDateString('de-DE', {weekday: 'long', day: 'numeric', month: 'long'})}</div><h1>${hi}${S.name ? ', ' + esc(S.name) : ''}!</h1></div></div>
   <div class="chips"><span class="chip">🔥 ${st} ${st === 1 ? 'Tag' : 'Tage'}</span><span class="chip">⭐ ${S.points} Punkte</span></div>
+  ${ringsHTML()}
   <div class="hero"><img class="heroimg" src="img/m-${m.id}.jpg" alt="" onerror="this.remove()"><div class="m" style="color:rgba(255,255,255,.85)">Mission des Tages · ${sub.emoji} ${sub.long} · ${m.min} Min.</div>
     <h3>${t.emoji} ${esc(m.title)}</h3><p>${esc(m.sub)}</p>
     <button class="btn" onclick="start('${m.id}')">${done ? 'Heute geschafft ✓ · nochmal' : 'Los geht’s'}</button></div>
   <h2>Noch mehr?</h2>
   <button class="item" onclick="start('${p.bonus.id}')"><div class="dot" style="background:${SUBJECTS[p.bonus.subject].color}33">${SUBJECTS[p.bonus.subject].emoji}</div><div style="flex:1"><b>Bonus: ${esc(p.bonus.title)}</b><span class="m">${SUBJECTS[p.bonus.subject].long} · ${p.bonus.min} Min.</span></div>${bonusDone ? '<span class="done">✓</span>' : ''}</button>
-  ${box ? `<button class="item" onclick="startBox()"><div class="dot" style="background:#ff453a33">🏁</div><div style="flex:1"><b>Boxenstopp</b><span class="m">${box} Aufgaben zum Wiederholen</span></div></button>` : ''}
+  <button class="item" onclick="start('${p.pro.id}')"><div class="dot" style="background:#ff453a33">🔩</div><div style="flex:1"><b>Profi-Challenge: ${esc(p.pro.title)}</b><span class="m">Motortechnik für Fortgeschrittene · ${p.pro.min} Min. · mit Taschenrechner</span></div>${doneToday(p.pro.id) ? '<span class="done">✓</span>' : ''}</button>
+  ${box || due ? `<button class="item" onclick="startBox()"><div class="dot" style="background:#ff453a33">🏁</div><div style="flex:1"><b>Boxenstopp</b><span class="m">${box ? box + ' Aufgaben zum Wiederholen' : ''}${box && due ? ' · ' : ''}${due ? due + (due === 1 ? ' Mission' : ' Missionen') + ' zum Auffrischen' : ''}</span></div></button>` : ''}
   <h2>Deine Fächer</h2>
-  <div class="grid">${SUBJ_ORDER.map(k => { const v = SUBJECTS[k], l = byS(k), d = l.filter(x => S.done[x.id]).length, g2 = l.filter(x => (S.stars[x.id] || 0) >= 2).length;
+  <div class="grid">${TAB_SUBJ.map(k => { const v = SUBJECTS[k], l = byS(k), d = l.filter(x => S.done[x.id]).length, g2 = l.filter(x => (S.stars[x.id] || 0) >= 2).length;
     return `<button class="th" style="border-color:${v.color}55" onclick="S.subj='${k}';save();go('missions')"><div class="e">${v.emoji}</div><b>${v.name}</b>
     <span class="m">${d} von ${l.length} Missionen</span><div class="bar" style="margin-top:8px"><i style="width:${Math.max(3, 100 * g2 / l.length)}%;background:${v.color}"></i></div></button>`; }).join('')}</div>
   <h2>Das große Ziel</h2>
@@ -100,8 +131,8 @@ function missions() {
   const list = byS(S.subj); let last = '', out = '';
   list.forEach(m => { if (m.topic !== last) { out += `<h2>${esc(m.topic)}</h2>`; last = m.topic } out += mItem(m); });
   const s = SUBJECTS[S.subj];
-  return `<h1>${s.emoji} ${s.long}</h1><p class="m">Klasse 6 · Sterne gibt es für Aufgaben, die du gleich beim ersten Versuch löst.</p>
-  <div class="chips2 wrap">${SUBJ_ORDER.map(k => `<button class="${S.subj === k ? 'on' : ''}" style="${S.subj === k ? 'border-color:' + SUBJECTS[k].color : ''}" onclick="S.subj='${k}';save();render()">${SUBJECTS[k].emoji} ${SUBJECTS[k].name}</button>`).join('')}</div>${out}`;
+  return `<h1>${s.emoji} ${s.long}</h1><p class="m">${S.subj === 'technik' ? 'Über den Schulstoff hinaus: Motortechnik für Fortgeschrittene. Der Taschenrechner ist erlaubt.' : 'Klasse 6 · Sterne gibt es für Aufgaben, die du gleich beim ersten Versuch löst.'}</p>
+  <div class="chips2 wrap">${TAB_SUBJ.map(k => `<button class="${S.subj === k ? 'on' : ''}" style="${S.subj === k ? 'border-color:' + SUBJECTS[k].color : ''}" onclick="S.subj='${k}';save();render()">${SUBJECTS[k].emoji} ${SUBJECTS[k].name}</button>`).join('')}</div>${out}`;
 }
 
 function projectView() {
@@ -123,12 +154,12 @@ function parents() {
   const cnt = d => S.log.filter(e => e.d === ymd(d)).length;
   const r = S.ratings.slice(-10);
   const avg = r.length ? (r.reduce((a, b) => a + b.score, 0) / r.length).toFixed(1) : '–';
-  const rows = SUBJ_ORDER.map(k => { const v = SUBJECTS[k], l = byS(k).filter(m => !m.speech), d = l.filter(m => S.done[m.id]), st = d.filter(m => S.stars[m.id]);
+  const rows = TAB_SUBJ.map(k => { const v = SUBJECTS[k], l = byS(k).filter(m => !m.speech), d = l.filter(m => S.done[m.id]), st = d.filter(m => S.stars[m.id]);
     const a = st.length ? (st.reduce((x, m) => x + S.stars[m.id], 0) / st.length).toFixed(1) : '–';
     return `<div class="row sp" style="padding:6px 0"><span>${v.emoji} <b>${v.name}</b></span><span class="m">${d.length} von ${l.length} Missionen · Ø ${a} Sterne</span></div>`; }).join('');
   const weak = {}; Object.entries(S.miss).forEach(([q, n]) => { if (QIDX[q]) { const m = QIDX[q].m; weak[m.title + ' (' + SUBJECTS[m.subject].name + ')'] = (weak[m.title + ' (' + SUBJECTS[m.subject].name + ')'] || 0) + n } });
   const wk = Object.entries(weak).sort((a, b) => b[1] - a[1]).slice(0, 5);
-  const plans = SUBJ_ORDER.map(k => `<details class="card"><summary><b>${SUBJECTS[k].emoji} ${SUBJECTS[k].long}</b></summary>${byS(k).map(m => `<p class="m"><b style="color:var(--t)">${esc(m.title)}:</b> ${esc(m.rlp)}</p>`).join('')}</details>`).join('');
+  const plans = TAB_SUBJ.map(k => `<details class="card"><summary><b>${SUBJECTS[k].emoji} ${SUBJECTS[k].long}</b></summary>${byS(k).map(m => `<p class="m"><b style="color:var(--t)">${esc(m.title)}:</b> ${esc(m.rlp)}</p>`).join('')}</details>`).join('');
   return `<h1>Eltern</h1><p class="m">Überblick über Fortschritt und Themen. Sprachaufnahmen werden nicht gespeichert.</p>
   <div class="card"><b>Letzte 7 Tage</b><div class="week">${days.map(d => `<div><i style="height:${cnt(d) * 26 + 4}px"></i>${d.toLocaleDateString('de-DE', {weekday: 'short'}).slice(0, 2)}</div>`).join('')}</div>
   <div class="m">Serie: ${streak()} Tage · Missionen gesamt: ${Object.values(S.done).reduce((a, b) => a + b, 0)}</div></div>
@@ -138,6 +169,9 @@ function parents() {
   <h2>Lehrplan-Bezug</h2>${plans}
   <div class="card"><b>Tipps</b><p class="m">• Erst zuhören, ausreden lassen, Zeit geben.<br>• Fehler als Hinweis sehen: Im Boxenstopp wird geübt, was nicht gleich klappte.<br>• Anstrengung loben, nicht nur Ergebnisse.<br>• Zehn bis fünfzehn Minuten täglich sind besser als eine lange Stunde.</p></div>
   <div class="card"><b>Name in der App</b><input id="nm" value="${esc(S.name)}" placeholder="Vorname (optional)" style="width:100%;margin-top:8px;padding:12px;border-radius:12px;border:0;background:var(--card2);color:var(--t);font:inherit" onchange="S.name=this.value.trim().slice(0,20);save()"></div>
+  <div class="card"><div class="row sp"><b>Töne</b><label style="display:flex;gap:8px;align-items:center"><input type="checkbox" ${S.sound ? 'checked' : ''} onchange="S.sound=this.checked;save()"> an</label></div><p class="m">Kurze Klänge bei richtigen Antworten und am Ende einer Mission.</p></div>
+  <details class="card"><summary><b>Wie die App lernt (Lernprinzipien)</b></summary><p class="m">• <b style="color:var(--t)">Abrufen statt nur lesen:</b> Fast alles sind Fragen und Aufgaben. Aktives Erinnern festigt Wissen besser als bloßes Durchlesen.<br>• <b style="color:var(--t)">Verteiltes Wiederholen:</b> Der Boxenstopp bringt Fehler und ältere Missionen nach 3, 7, 14 und 30 Tagen zurück.<br>• <b style="color:var(--t)">Abwechslung:</b> Die Fächer wechseln täglich (Verschränken statt Blocklernen).<br>• <b style="color:var(--t)">Sofortiges Feedback:</b> Jede Antwort wird erklärt, nicht nur bewertet.<br>• <b style="color:var(--t)">Wachstum statt Fehlerangst:</b> Sterne zählen den ersten Versuch, aber Fehler führen zu Wiederholung, nicht zu Punktabzug.<br>• <b style="color:var(--t)">Faire Ziele:</b> Wochenziel 5 von 7 Tagen, damit ein freier Tag die Serie nicht zerstört.<br>• <b style="color:var(--t)">Eigener Antrieb:</b> Eigene Interessen (Simson, Traktor, Tuning) und das große Ziel geben Sinn, Punkte sind nur Beiwerk.</p></details>
+  <details class="card"><summary><b>Bildnachweis</b></summary>${CREDITS.map(c => `<p class="m"><b style="color:var(--t)">${esc(c.title)}</b><br>${esc(c.author)} · ${esc(c.license)} · <a style="color:#0a84ff" href="https://commons.wikimedia.org/wiki/File:${encodeURI(c.page)}" target="_blank" rel="noopener">Quelle</a></p>`).join('')}<p class="m">Fotos von Wikimedia Commons, in der Größe angepasst. Fotos vom Rasentraktor: eigene Aufnahmen. Die Zeichnungen sind selbst erstellt.</p></details>
   <div class="card"><b>Version</b><p class="m">Lernwerkstatt, Version ${VERSION}. Missionen: ${MISSIONS.length}.</p></div>
   <div class="card"><b>Synchronisation</b><p class="m">Noch nicht aktiv. Der Fortschritt liegt nur auf diesem Gerät.</p></div>
   <button class="btn alt" onclick="if(confirm('Wirklich alle Fortschritte löschen?')){S.points=0;S.days=[];S.done={};S.stars={};S.miss={};S.log=[];S.ratings=[];S.daily={};S.goalDate='';save();render()}">Fortschritt zurücksetzen</button>`;
@@ -152,11 +186,12 @@ function start(id) {
 }
 function startBox() {
   clearTimers();
-  let ids = Object.keys(S.miss).filter(q => QIDX[q]).sort((a, b) => S.miss[b] - S.miss[a]).slice(0, 6);
+  let ids = Object.keys(S.miss).filter(q => QIDX[q]).sort((x, y) => S.miss[y] - S.miss[x]).slice(0, 6), dueIds = [];
+  dueMissions().forEach(id => { if (ids.length >= 9) return; const qs = shuffle(Object.keys(QIDX).filter(q => QIDX[q].m.id === id && !ids.includes(q))).slice(0, 2); if (qs.length) { qs.forEach(q => ids.push(q)); dueIds.push(id) } });
   if (ids.length < 4) shuffle(Object.keys(QIDX).filter(q => S.done[QIDX[q].m.id] && !ids.includes(q))).slice(0, 6 - ids.length).forEach(q => ids.push(q));
   if (!ids.length) { alert('Noch nichts zu wiederholen. Schließe zuerst eine Mission ab.'); return }
-  const steps = [{type: 'wissen', title: 'Boxenstopp', text: 'Hier kommen Aufgaben dran, die beim ersten Mal nicht gleich geklappt haben. Nimm dir Zeit. Wenn du sie jetzt sicher löst, sind sie bald erledigt.'}, ...shuffle(ids).map(q => QIDX[q].s)];
-  run = {m: {id: 'box', theme: 'sport', title: 'Boxenstopp', steps}, i: 0, ok: 0, tot: 0, score: 0, steps};
+  const steps = [{type: 'wissen', title: 'Boxenstopp', text: 'Hier kommen Aufgaben dran, die beim ersten Mal nicht gleich geklappt haben, und Aufgaben zum Auffrischen. Wer Wissen mit Pausen wiederholt, behält es länger. Nimm dir Zeit.'}, ...shuffle(ids).map(q => QIDX[q].s)];
+  run = {m: {id: 'box', theme: 'sport', title: 'Boxenstopp', steps}, i: 0, ok: 0, tot: 0, score: 0, steps, dueIds};
   view = 'run'; setAccent(theme('sport').color); render();
 }
 const next = () => { clearTimers(); run.i++; step() };
@@ -174,7 +209,7 @@ const fb = (cls, html) => { const e = $('#fb'); if (e) e.innerHTML = `<div class
 
 // Antwort werten: nur der erste Versuch zählt für Sterne und Boxenstopp
 function scoreQ(ok) {
-  const s = run.steps[run.i]; run.tot++;
+  const s = run.steps[run.i]; run.tot++; snd(ok ? 'ok' : 'bad');
   if (ok) { run.ok++; if (s.qid && S.miss[s.qid]) { S.miss[s.qid]--; if (S.miss[s.qid] <= 0) delete S.miss[s.qid] } }
   else if (s.qid) S.miss[s.qid] = (S.miss[s.qid] || 0) + 1;
   save();
@@ -186,8 +221,8 @@ const parseNum = s => { s = String(s).replace(/\s/g, '').replace(/[^\d.,\-]/g, '
 const STEP = {
   wissen: s => `<h1>${esc(s.title)}</h1>${s.svg ? `<div class="card art">${SVGS[s.svg]}</div>` : ''}<div class="card"><p>${rich(s.text)}</p></div>${s.fact ? `<div class="card fact"><b>💡 Wusstest du?</b><p class="m" style="color:var(--t)">${rich(s.fact)}</p></div>` : ''}${nextBtn()}`,
   quiz: s => { run.cur.order = shuffle(s.opts.map((_, i) => i));
-    return `<div class="q">${rich(s.q)}</div>${run.cur.order.map(i => `<button class="opt" id="o${i}" onclick="qpick(${i})">${esc(s.opts[i])}</button>`).join('')}<div id="fb"></div>${nextBtn('Weiter', true)}`; },
-  num: s => `<div class="q">${rich(s.q)}</div><div class="row"><input id="in" class="in" inputmode="decimal" autocomplete="off" placeholder="Antwort" onkeydown="if(event.key==='Enter')ncheck()"><span class="m">${esc(s.unit || '')}</span></div><div id="fb"></div>
+    return `<div class="q">${rich(s.q)}</div>${s.img ? `<img class="qimg" src="${s.img}" alt="">` : ''}${run.cur.order.map(i => `<button class="opt" id="o${i}" onclick="qpick(${i})">${esc(s.opts[i])}</button>`).join('')}<div id="fb"></div>${nextBtn('Weiter', true)}`; },
+  num: s => `<div class="q">${rich(s.q)}</div>${run.m.pro ? '<button class="calcb" onclick="calcOpen()">🖩 Taschenrechner</button>' : ''}<div class="row"><input id="in" class="in" inputmode="decimal" autocomplete="off" placeholder="Antwort" onkeydown="if(event.key==='Enter')ncheck()"><span class="m">${esc(s.unit || '')}</span></div><div id="fb"></div>
     <button class="btn" id="chk" onclick="ncheck()">Prüfen</button>${nextBtn('Weiter', true)}`,
   text: s => `<div class="q">${rich(s.q)}</div><input id="in" class="in" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Antwort" onkeydown="if(event.key==='Enter')tcheck()"><div id="fb"></div>
     <button class="btn" id="chk" onclick="tcheck()">Prüfen</button>${nextBtn('Weiter', true)}`,
@@ -393,23 +428,45 @@ function finish() {
   const perfect = run.tot > 0 && run.ok === run.tot; if (perfect && !box) pts += 5;
   if (m.speech) { if (m.skill === 'mut') pts += 5; if (talk) pts += 5 } else if (talk) pts += 3;
   const stars = m.speech || !run.tot ? 3 : run.ok / run.tot >= .85 ? 3 : run.ok / run.tot >= .6 ? 2 : 1;
-  const before = S.points; S.points += pts;
+  const before = S.points, rankBefore = rankOf(S.points).i; S.points += pts; const rankUp = rankOf(S.points).i > rankBefore ? rankOf(S.points).cur : null;
   if (!box) { S.done[m.id] = (S.done[m.id] || 0) + 1; S.stars[m.id] = Math.max(S.stars[m.id] || 0, stars) }
+  if (!box && !m.speech) { const r = S.rev[m.id]; S.rev[m.id] = stars >= 2 ? (() => { const k = r ? Math.min(r.step + 1, 3) : 0; return {step: k, due: addDays(REV_INT[k])} })() : {step: 0, due: addDays(1)} }
+  if (box && run.dueIds) run.dueIds.forEach(id => { const r = S.rev[id]; if (r) { const k = Math.min(r.step + 1, 3); S.rev[id] = {step: k, due: addDays(REV_INT[k])} } });
   S.log.push({d: today(), id: m.id, s: stars}); S.log = S.log.slice(-500);
   if (!S.days.includes(today())) S.days.push(today());
   if (run.score) S.ratings.push({date: today(), id: m.id, score: run.score});
   const wasDone = !!S.goalDate; if (!wasDone && projectDone()) S.goalDate = new Date().toLocaleDateString('de-DE');
   save(); const st = streak(); const goalNow = !wasDone && !!S.goalDate;
   const unlocked = GARAGE.find(g => before < g.need && S.points >= g.need), mc = missCount();
+  const praise = !run.tot ? 'Gut gemacht. Dranbleiben zählt.' : stars === 3 ? ['Stark! Das saß.', 'Sauber gearbeitet, das war fast fehlerfrei.', 'Das war Meisterarbeit.'][Math.floor(Math.random() * 3)] : stars === 2 ? 'Gut gemacht. Mit Übung wird es noch sicherer.' : 'Aus Fehlern lernt man: Die kniffligen Aufgaben üben wir im Boxenstopp.';
+  if (stars >= 2 || rankUp || goalNow) { snd('win'); confetti() }
   $('#app').innerHTML = `<div class="center" style="margin-top:34px"><div class="big">🏁</div><h1>${box ? 'Boxenstopp erledigt!' : 'Mission geschafft!'}</h1>
     ${run.tot ? `<div class="stars big2">${starStr(stars)}</div><p class="m">${run.ok} von ${run.tot} Aufgaben gleich beim ersten Versuch richtig.</p>` : ''}
-    <p class="m">Du hast ${pts} Punkte geholt${st > 1 ? ' und ' + st + ' Tage in Folge gelernt' : ''}.</p></div>
+    <p class="m">Du hast ${pts} Punkte geholt${st > 1 ? ' und ' + st + ' Tage in Folge gelernt' : ''}.</p>
+    <p style="font-weight:600">${praise}</p></div>
+    ${rankUp ? `<div class="card center" style="background:#ffd60a22"><div class="big">${rankUp.e}</div><b style="font-size:20px">Neuer Rang: ${rankUp.n}</b></div>` : ''}
     ${goalNow ? `<div class="card center" style="background:#ff453a22"><div class="big">🏆</div><b style="font-size:20px">Großes Ziel geschafft!</b><p class="m">Alle Etappen zum MTX-Zylinder sind erledigt. Deine Urkunde liegt in der Garage.</p></div>` : ''}
     ${unlocked ? `<div class="card gcard"><div class="gimg">${gimg(unlocked)}</div><div><b>Neu in der Garage:</b><br>${esc(unlocked.name)}</div></div>` : ''}
     ${mc ? `<button class="btn alt" onclick="startBox()">Boxenstopp: ${mc} Aufgaben wiederholen</button>` : ''}
     <button class="btn" onclick="go('home')">Zurück</button>`;
   run = null; view = 'home'; $('#tab').style.display = 'flex';
 }
+
+// ---- Taschenrechner (für Profi-Aufgaben)
+let CE = '';
+function calcFmt(v) { return isFinite(v) ? String(+v.toPrecision(10)).replace('.', ',') : 'Fehler' }
+function calcEval(e) { try { let x = e.replace(/÷/g, '/').replace(/×/g, '*').replace(/−/g, '-').replace(/,/g, '.').replace(/π/g, '(Math.PI)').replace(/√/g, 'Math.sqrt'); x = x.replace(/(\d|\))(?=\(|Math)/g, '$1*');
+  if (!/^[0-9+\-*/().\sMathPIsqrt]*$/.test(x) || !x.trim()) return NaN; return Function('"use strict";return (' + x + ')')() } catch (er) { return NaN } }
+function calcOpen() {
+  if ($('#calc')) return; CE = '';
+  const keys = ['C', '(', ')', '÷', '7', '8', '9', '×', '4', '5', '6', '−', '1', '2', '3', '+', '0', ',', 'π', '√'];
+  const o = document.createElement('div'); o.id = 'calc'; o.innerHTML = `<div class="cb"><div class="cd" id="cd">0</div><div class="ck">${keys.map(k => `<button class="${'÷×−+'.includes(k) ? 'op' : k === 'C' ? 'cl' : ''}" onclick="calcKey('${k}')">${k}</button>`).join('')}<button class="op eq" onclick="calcKey('=')">=</button></div>
+  <div class="row" style="gap:10px"><button class="btn alt" style="margin:8px 0" onclick="calcClose()">Schließen</button><button class="btn" style="margin:8px 0" onclick="calcUse()">Übernehmen</button></div></div>`;
+  document.body.appendChild(o);
+}
+function calcKey(k) { const d = $('#cd'); if (k === 'C') CE = ''; else if (k === '=') { const v = calcEval(CE); CE = isFinite(v) ? calcFmt(v) : ''; d.textContent = isFinite(v) ? CE : 'Fehler'; return } else CE += (k === '√' ? '√(' : k); d.textContent = CE || '0' }
+function calcClose() { const c = $('#calc'); if (c) c.remove() }
+function calcUse() { const v = calcEval(CE), inp = $('#in'); if (isFinite(v) && inp && !inp.disabled) inp.value = calcFmt(v).replace(/\.\d*$/, m => m); calcClose(); if (inp) inp.focus() }
 
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => {});
 render();

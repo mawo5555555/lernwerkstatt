@@ -147,8 +147,10 @@ const SIMSON_SPOTS = [
   <path d="M104 108 C86 102 80 116 88 126" fill="none" stroke="#e5e5ea" stroke-width="5" stroke-linecap="round"/><path d="M104 108 C86 102 80 116 88 126" fill="none" stroke="#7a7a7f" stroke-width="1.4" stroke-linecap="round"/>
   <!-- Trittbrett -->
   <path d="M186 187 L300 187 L304 196 L184 197 Z" fill="#1c1c1e" stroke="#58585c" stroke-width="1.4"/>${step}<path d="M180 197 L304 196" stroke="#c8c8cd" stroke-width="2.4"/>
-  <!-- Beinschild -->
-  <path d="M324 62 C304 84 294 122 290 158 L284 186 L222 190 C246 176 262 150 270 126 C278 100 296 78 318 56 Z" fill="url(#gRed)" stroke="#5c0f09" stroke-width="1.8"/><path d="M314 72 C300 98 294 132 288 164" fill="none" stroke="#ffb3a8" stroke-width="1.8" opacity=".65"/><path d="M286 150 L300 150 L300 186 L284 186" fill="#a8261a" stroke="#5c0f09" stroke-width="1.2"/>
+  <!-- Beinschild und Seitenverkleidung (breit geschwungen) -->
+  <path d="M326 58 C320 96 312 140 304 176 L298 190 L226 192 C236 178 250 160 262 134 C274 106 296 80 316 56 Z" fill="url(#gRed)" stroke="#5c0f09" stroke-width="1.8"/>
+  <path d="M318 70 C310 104 304 140 298 172" fill="none" stroke="#ffb3a8" stroke-width="2" opacity=".7"/><path d="M296 104 C284 122 272 142 262 160" fill="none" stroke="#7a1810" stroke-width="1.4" opacity=".8"/>
+  <path d="M296 150 L306 150 L306 188 L296 190 Z" fill="#a8261a" stroke="#5c0f09" stroke-width="1.2"/><path d="M232 192 L298 190" stroke="#e5e5ea" stroke-width="3" stroke-linecap="round"/>
   <!-- Teleskopgabel mit sichtbaren Federn, Kotflügel -->
   <path d="M321 137 A66 66 0 0 1 435 147" fill="none" stroke="#0c0c0e" stroke-width="9" stroke-linecap="round"/><path d="M321 137 A66 66 0 0 1 435 147" fill="none" stroke="#3b3b40" stroke-width="6" stroke-linecap="round"/><path d="M330 132 A62 62 0 0 1 420 128" fill="none" stroke="#7b7b82" stroke-width="1.2" opacity=".7"/>
   <path d="M334 68 L372 168" fill="none" stroke="#6e6e73" stroke-width="10" stroke-linecap="round"/><path d="M334 68 L372 168" fill="none" stroke="#f2f2f6" stroke-width="7" stroke-linecap="round"/>
@@ -315,7 +317,7 @@ const KUEHLUNG_SPOTS = [
 function zyl(alpha, opt = {}) {
   const r = 22, l = 62, a = alpha * Math.PI / 180, cx = 150, cy = 240;
   const pin = cy - (r * Math.cos(a) + Math.sqrt(l * l - (r * Math.sin(a)) ** 2)), crown = pin - 22, skirt = crown + 34;
-  const ex = crown > 164, tr = crown > 169, inn = skirt < 186, up = alpha > 180 && alpha < 360;
+  const EX = opt.exTop ?? 164, ex = crown > EX, tr = crown > 169, inn = skirt < 186, up = alpha > 180 && alpha < 360;
   const kx = cx + r * Math.sin(a), ky = cy - r * Math.cos(a);
   const burn = alpha >= 345 || alpha <= 70, fl = alpha >= 345 ? .25 + (alpha - 345) / 30 : alpha <= 70 ? Math.max(.18, .6 - alpha / 140) : 0;
   const gas = ex ? 'rgba(142,142,147,.45)' : burn ? `rgba(255,138,31,${fl.toFixed(2)})` : up && alpha > 255 ? 'rgba(255,190,100,.28)' : 'rgba(90,200,250,.22)';
@@ -325,7 +327,7 @@ function zyl(alpha, opt = {}) {
    <path d="M98 126 Q98 98 150 98 Q202 98 202 126 Z" fill="url(#gAlu)" stroke="${INK}" stroke-width="2"/><g stroke="#5a5a5f" stroke-width="1.2"><line x1="108" y1="116" x2="192" y2="116"/><line x1="112" y1="108" x2="188" y2="108"/></g><circle cx="108" cy="122" r="2.4" fill="#4a4a4e"/><circle cx="192" cy="122" r="2.4" fill="#4a4a4e"/>
    <rect x="112" y="126" width="76" height="74" fill="${DARK}"/>
    <path d="M112 126 Q112 106 150 106 Q188 106 188 126 Z" fill="${gas}"/><rect x="112" y="126" width="76" height="${Math.max(0, crown - 126)}" fill="${gas}"/>
-   <rect x="60" y="164" width="52" height="18" fill="#1c1c1e" stroke="${INK}" stroke-width="2"/><rect x="60" y="186" width="52" height="14" fill="#1c1c1e" stroke="${INK}" stroke-width="2"/>
+   <rect x="60" y="${EX}" width="52" height="18" fill="#1c1c1e" stroke="${INK}" stroke-width="2"/><rect x="60" y="186" width="52" height="14" fill="#1c1c1e" stroke="${INK}" stroke-width="2"/>
    <path d="M188 169 H214 V204 H202 V187 H188 Z" fill="#1c1c1e" stroke="${INK}" stroke-width="2"/>
    <rect x="86" y="202" width="128" height="92" rx="36" fill="rgba(90,200,250,.14)"/>
    <rect x="146" y="74" width="8" height="26" fill="#f4f4f6" stroke="${INK}" stroke-width="1.3"/><rect x="144" y="94" width="12" height="6" fill="url(#gChrome)" stroke="${INK}" stroke-width="1"/><rect x="142" y="60" width="16" height="16" rx="3" fill="#141416" stroke="${INK}" stroke-width="1.5"/>
@@ -336,7 +338,7 @@ function zyl(alpha, opt = {}) {
    <line x1="114" y1="${(crown + 7).toFixed(1)}" x2="186" y2="${(crown + 7).toFixed(1)}" stroke="#636366" stroke-width="2"/><line x1="114" y1="${(crown + 12).toFixed(1)}" x2="186" y2="${(crown + 12).toFixed(1)}" stroke="#636366" stroke-width="2"/>
    <circle cx="150" cy="${pin.toFixed(1)}" r="5" fill="#2c2c2e" stroke="${INK}" stroke-width="1.5"/><circle cx="${kx.toFixed(1)}" cy="${ky.toFixed(1)}" r="5" fill="${INK}"/>`;
   if (!opt.still) {
-    if (ex) o += `<path d="M104 173 H56 M64 168 L54 173 L64 178" stroke="${GREY}" stroke-width="3" fill="none" stroke-linecap="round"/>`;
+    if (ex) o += `<path d="M104 ${EX + 9} H56 M64 ${EX + 4} L54 ${EX + 9} L64 ${EX + 14}" stroke="${GREY}" stroke-width="3" fill="none" stroke-linecap="round"/>`;
     if (tr) o += `<path d="M208 196 V176 M203 183 L208 174 L213 183" stroke="#5ac8fa" stroke-width="3" fill="none" stroke-linecap="round"/>`;
     if (inn) o += `<path d="M54 193 H104 M96 188 L106 193 L96 198" stroke="#5ac8fa" stroke-width="3" fill="none" stroke-linecap="round"/>`;
     if (alpha >= 345 && alpha <= 359 || alpha === 0) o += `<path d="M150 106 l5 -9 l-3 0 l5 -9 M150 106 l-6 -8" stroke="#ffd60a" stroke-width="3" fill="none"/>`;

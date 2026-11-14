@@ -72,10 +72,26 @@ audio{width:100%;margin-top:10px}
 .pwo{overflow-x:auto}.pw{position:relative;width:100%}.art.z .pw{width:210%}.zoomb{position:absolute;right:8px;bottom:8px;z-index:2;border:0;border-radius:99px;padding:6px 12px;background:rgba(60,60,64,.9);color:#fff;font:600 13px -apple-system,system-ui,sans-serif}.hs{position:absolute;width:24px;height:24px;margin:-12px 0 0 -12px;border-radius:50%;border:2px solid #fff;background:color-mix(in srgb,var(--ac) 80%,transparent);color:#fff;font:700 12px/1 -apple-system,system-ui,sans-serif;padding:0;display:grid;place-items:center;box-shadow:0 2px 8px rgba(0,0,0,.5)}
 .hs.sel{background:#fff;color:#111;transform:scale(1.15)}.hs.ok{background:var(--ok);border-color:var(--ok)}.hs.no{background:#ff453a;animation:shk .4s}
 .heroimg{width:100%;border-radius:18px;margin-bottom:10px;display:block}
+
+#app>*{animation:rise .3s cubic-bezier(.2,.8,.2,1) both}@keyframes rise{from{opacity:0;transform:translateY(12px)}}
+.item,.btn,.opt,.mb,.th{transition:transform .12s ease,background .2s,border-color .2s}.item:active,.opt:active,.mb:active,.th:active{transform:scale(.97)}
+.ringcard{display:flex;gap:16px;align-items:center;background:linear-gradient(160deg,#1f1f23,#141416)}.ringcard .rl{font-size:14px;line-height:1.7;flex:1}.ringcard .rk{margin-top:6px;color:var(--m);font-size:13px;line-height:1.3}
+.rg{transition:stroke-dasharray 1.1s cubic-bezier(.2,.8,.2,1)}
+.qimg{width:100%;border-radius:18px;margin:6px 0 10px;display:block;max-height:300px;object-fit:cover}
+.calcb{display:inline-block;border:0;border-radius:99px;padding:8px 14px;background:var(--card2);color:var(--t);font:600 14px -apple-system,system-ui,sans-serif;margin:2px 0 6px}
+#calc{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:flex-end;justify-content:center;z-index:50;animation:rise .2s both}
+#calc .cb{width:min(440px,100%);background:#1c1c1e;border-radius:28px 28px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom))}
+#calc .cd{background:#000;border-radius:16px;padding:14px 16px;font-size:30px;font-weight:300;text-align:right;min-height:62px;overflow-x:auto;white-space:nowrap}
+#calc .ck{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:12px 0}
+#calc .ck button{border:0;border-radius:99px;height:56px;font-size:22px;background:#3a3a3c;color:#fff;font-family:inherit}#calc .ck button.op{background:#ff9f0a}#calc .ck button.cl{background:#a5a5a5;color:#000}#calc .ck button.eq{grid-column:span 4;border-radius:99px}
+#calc .ck button:active{filter:brightness(1.4)}
+.confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:60}.confetti i{position:absolute;top:-12px;width:9px;height:14px;border-radius:2px;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(105vh) rotate(720deg);opacity:.8}}
+@media(prefers-reduced-motion:reduce){#app>*{animation:none}.rg{transition:none}}
 details.card summary{cursor:pointer}details.card p{margin:8px 0}
 @media(min-width:760px){main{max-width:720px}.grid{grid-template-columns:repeat(4,1fr)}}
 
 </style></head>
 <body><main id="app"></main><nav class="tab" id="tab"></nav>
-<script src="content.js"></script><script src="c-grafik.js"></script><script src="c-mathe.js"></script><script src="c-deutsch.js"></script><script src="c-englisch.js"></script><script src="c-nawi.js"></script><script src="c-sprechen.js"></script><script src="app.js"></script>
+<script src="content.js"></script><script src="c-grafik.js"></script><script src="c-mathe.js"></script><script src="c-deutsch.js"></script><script src="c-englisch.js"></script><script src="c-nawi.js"></script><script src="c-technik.js"></script><script src="c-sprechen.js"></script><script src="app.js"></script>
 </body></html>
