@@ -37,9 +37,7 @@ const curve = (p, r) => p.ps * Math.exp(-Math.pow((r - p.peak) / p.width, 2));
 VP.tune = (g, v, st) => {
   const t = tuneOf(st), p = perf(t), slots = {};
   Object.entries(PARTS).forEach(([k, x]) => (slots[x.slot] = slots[x.slot] || []).push(k));
-  const row = k => { const x = PARTS[k], inst = t[x.slot] === x.val, own = st.own.includes(k);
-    return `<div class="prow"><div class="dot" style="background:${inst ? '#30d15833' : 'var(--card2)'}">${x.icon}</div><div style="flex:1"><b>${x.name}</b><span class="m">${x.info}</span></div>
-      ${inst ? `<button class="pbtn ok" onclick="tOrig('${x.slot}')">✓ drin<br><small>ausbauen</small></button>` : own ? `<button class="pbtn" onclick="tPut('${k}')">einbauen</button>` : `<button class="pbtn buy" ${S.coins < x.price ? 'disabled' : ''} onclick="tBuy('${k}')">${x.price} 🪙</button>`}</div>` };
+  const row = k => partRow(k, st);
   return `<div class="row sp"><b>🏎️ Tuning-Werkstatt</b><span class="chip">🪙 ${S.coins} Taler</span></div>
   <div class="tstat"><div><b>${de(p.ps, 1)}</b><span>PS (ca.)</span></div><div><b>${p.vmax}</b><span>km/h</span></div><div><b>${t.zyl}</b><span>cm³</span></div><div><b>${p.legal ? '✅' : '⚠️'}</b><span>${p.legal ? 'Straße ok' : 'nur Privatgelände'}</span></div></div>
   ${p.legal ? '' : '<p class="m">⚠️ Mit diesen Teilen erlischt die Betriebserlaubnis. Auf die Straße darf sie nur mit Prüfung, Eintragung und passendem Führerschein. Im Spiel fährst du auf dem Prüfstand und der Rennstrecke.</p>'}
@@ -76,14 +74,14 @@ function dynoRun() {
   }, 30);
 }
 function tBuy(k) { const x = PARTS[k], st = gst(G.id); if (S.coins < x.price) return; S.coins -= x.price; st.own.push(k); save(); snd('ok');
-  G.job = {k: 'part', steps: INSTALL[x.slot](x), i: 0, mist: 0, title: x.icon + ' Einbau: ' + x.name, after: () => { tuneOf(st)[x.slot] = x.val; save() }}; jStep() }
-function tPut(k) { const x = PARTS[k], st = gst(G.id); tuneOf(st)[x.slot] = x.val; save(); tone(700, .08); vRefresh() }
-function tOrig(sl) { const st = gst(G.id); tuneOf(st)[sl] = ORIG[sl]; save(); tone(400, .08); vRefresh() }
+  G.job = {k: 'part', slot: x.slot, steps: INSTALL[x.slot](x), i: 0, mist: 0, title: x.icon + ' Einbau: ' + x.name, after: () => { tuneOf(st)[x.slot] = x.val; save() }}; jStep() }
+function tPut(k) { const x = PARTS[k], st = gst(G.id); tuneOf(st)[x.slot] = x.val; save(); tone(700, .08); vRe() }
+function tOrig(sl) { const st = gst(G.id); tuneOf(st)[sl] = ORIG[sl]; save(); tone(400, .08); vRe() }
 function tDuese(n) { const st = gst(G.id); tuneOf(st).duese = n; save() }
 function tPaint(h) { const st = gst(G.id), t = tuneOf(st); if (t.hue === h) return; if (S.coins < 30) { toast('Dafür brauchst du 30 Taler.'); return }
   G.job = {k: 'paint', steps: [{t: 'mc', q: 'Bevor lackiert wird: Was machst du zuerst?', o: ['Abkleben, was keine Farbe bekommen soll, und anschleifen', 'Sofort drauflossprühen', 'Den Tank vollmachen', 'Die Reifen abbauen'], why: 'Auf angeschliffenem, sauberem Lack hält die neue Farbe.'},
     {t: 'hold', q: 'Halte gedrückt und sprühe in gleichmäßigen Bahnen. Lieber mehrere dünne Schichten als eine dicke.', ms: 3000, ico: '🎨', btn: 'Sprühen'}], i: 0, mist: 0, title: '🎨 Lackieren',
-    after: () => { S.coins -= 30; t.hue = h; save() }}; jStep() }
+    after: () => { S.coins -= 30; tuneOf(st).hue = h; save(); if (window.ws3dPaint) ws3dPaint(h) }}; jStep() }
 const INSTALL = {
   zyl: x => [{t: 'mc', q: 'Was muss vor dem Zylinderwechsel ab?', o: ['Auspuff, Vergaser und Zylinderkopf', 'nur der Tank', 'beide Räder', 'gar nichts'], why: ''},
     {t: 'turn', q: 'Löse die Zylinderkopfmuttern.', dir: -1, turns: 1.5, sw: 10},
@@ -121,3 +119,7 @@ function crPick(i) { const c = G.cx, b = $('#cr' + i); if (c.includes(i)) return
   if (!ok) { G.job.mist++; b.classList.add('no'); setTimeout(() => b.classList.remove('no'), 450); jfb('bad', 'Nicht daneben! Über Kreuz heißt: als Nächstes die <b>gegenüberliegende</b> Mutter.'); snd('bad'); return }
   c.push(i); b.classList.add('ok'); b.textContent = c.length; tone(600 + c.length * 120, .08); jfb('', '');
   if (c.length === 4) { jfb('good', 'Sauber über Kreuz angezogen!'); snd('ok'); jNext(1000) } }
+
+function partRow(k, st) { const t = tuneOf(st), x = PARTS[k], inst = t[x.slot] === x.val, own = st.own.includes(k);
+  return `<div class="prow"><div class="dot" style="background:${inst ? '#30d15833' : 'var(--card2)'}">${x.icon}</div><div style="flex:1"><b>${x.name}</b><span class="m">${x.info}</span></div>
+    ${inst ? `<button class="pbtn ok" onclick="tOrig('${x.slot}')">✓ drin<br><small>ausbauen</small></button>` : own ? `<button class="pbtn" onclick="tPut('${k}')">einbauen</button>` : `<button class="pbtn buy" ${S.coins < x.price ? 'disabled' : ''} onclick="tBuy('${k}')">${x.price} 🪙</button>`}</div>` }

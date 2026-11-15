@@ -5,7 +5,7 @@ const TRAP2T = ['Vollgas geben vor dem Kicken', 'Vollgas beim Kaltstart lässt d
 const STDIESEL = ['Schalthebel auf Leerlauf', 'Kupplung treten', 'Zündschlüssel auf Vorglühen', 'Warten, bis die Glühlampe ausgeht', 'Anlasser betätigen'];
 const TRAPDIESEL = ['Choke ziehen', 'Ein Diesel hat keinen Choke. Er wird vorgeglüht.'];
 const VEH = {
-  g1: {kind: '2t', fuel: 'mix', tank: 8, spots: 'simson', start: ST2T, trap: TRAP2T, race: {g: 4, vmax: 60, idle: 1500, red: 7000, win: [5200, 6600]},
+  g1: {kind: '2t', fuel: 'mix', tank: 8, spots: 'simson', ws: true, start: ST2T, trap: TRAP2T, race: {g: 4, vmax: 60, idle: 1500, red: 7000, win: [5200, 6600]},
     specs: [['Hersteller', 'Simson, Suhl (Thüringen)'], ['Bauzeit', '1980 bis etwa 1990'], ['Motor', 'Einzylinder-Zweitakt, 49,6 cm³'], ['Leistung', 'ca. 3,7 PS'], ['Getriebe', '3 oder 4 Gänge'], ['Höchstgeschwindigkeit', '60 km/h'], ['Kraftstoff', 'Gemisch 1:50']],
     fact: 'Fast alle Ersatzteile für die S51 gibt es bis heute neu zu kaufen.',
     quiz: [Q('Welchen Kraftstoff tankt die S51?', 'Gemisch aus Benzin und Öl (1:50)', ['Diesel', 'Benzin ganz ohne Öl', 'Strom'], 'Zweitakter brauchen das Öl im Benzin zum Schmieren.'),
@@ -177,6 +177,7 @@ function vRefresh() { const p = G.panel; $('#app').innerHTML = vehView(); if (G.
 function vPanel(k, keep) {
   const g = GARAGE.find(x => x.id === G.id), v = VEH[g.id], st = gst(g.id);
   if (G.raf) { clearInterval(G.raf); G.raf = 0; if (G.on) engRpm(v.race.idle) }
+  if (k === 'shop' && v.ws && !keep) { openWs(); return }
   if (k === 'start' && G.on && !keep) { engStop(); $('#vh').classList.remove('run'); toast('Motor aus. 🔇'); G.panel = null; vRefresh(); return }
   G.job = null; G.panel = k; document.querySelectorAll('.vt').forEach(b => b.classList.toggle('on', b.id === 'vt_' + k));
   const p = $('#vp'); p.innerHTML = '<div class="card vpc">' + VP[k](g, v, st) + '</div>'; if (VPI[k]) VPI[k](g, v, st);
@@ -394,9 +395,9 @@ const JOBS = {
     {t: 'hold', q: 'Klopfe den Filter aus und blase ihn von innen nach außen mit Druckluft durch.', ms: 2000, ico: '💨', btn: 'Ausblasen'},
     {t: 'mc', q: 'Warum ist ein sauberer Luftfilter wichtig?', o: ['Der Motor bekommt genug saubere Luft.', 'Dann passt mehr in den Tank.', 'Für eine lautere Hupe.', 'Damit die Reifen halten.'], why: 'Ein verstopfter Filter macht das Gemisch zu fett, der Motor verliert Kraft.'},
     {t: 'turn', q: 'Deckel wieder festschrauben, nur handfest.', dir: 1, turns: 1.5, sw: 10, tq: false}]},
-  reifen: {name: 'Reifendruck prüfen', icon: '🛞', kinds: ['4t', 'd'], every: 60, steps: v => [
+  reifen: {name: 'Reifendruck prüfen', icon: '🛞', kinds: ['2t', '4t', 'd'], every: 60, steps: v => [
     {t: 'mc', q: 'Wo findest du den richtigen Reifendruck?', o: ['in der Betriebsanleitung', 'auf dem Nummernschild', 'im Tankdeckel', 'auf dem Sitz'], why: ''},
-    {t: 'fill', q: `Pumpe den Reifen auf. In diesem Beispiel soll er ${v.kind === 'd' ? '1,6' : '1,0'} bar haben.`, max: v.kind === 'd' ? 2.4 : 1.6, lo: v.kind === 'd' ? 1.55 : .95, hi: v.kind === 'd' ? 1.65 : 1.05, start: v.kind === 'd' ? 1.1 : .6, unit: ' bar', ico: '🛞', btn: 'Pumpen'},
+    {t: 'fill', q: `Pumpe den Reifen auf. In diesem Beispiel soll er ${{d: '1,6', '4t': '1,0', '2t': '2,0'}[v.kind]} bar haben.`, max: {d: 2.4, '4t': 1.6, '2t': 3}[v.kind], lo: {d: 1.55, '4t': .95, '2t': 1.95}[v.kind], hi: {d: 1.65, '4t': 1.05, '2t': 2.05}[v.kind], start: {d: 1.1, '4t': .6, '2t': 1.2}[v.kind], unit: ' bar', ico: '🛞', btn: 'Pumpen'},
     {t: 'mc', q: 'Was passiert bei zu wenig Luft im Reifen?', o: ['Er walkt, wird heiß und nutzt sich ab.', 'Er wird schneller.', 'Nichts.', 'Der Tank läuft aus.'], why: ''}]}
 };
 const jobsFor = v => Object.entries(JOBS).filter(([, j]) => j.kinds.includes(v.kind));
@@ -408,18 +409,19 @@ VP.shop = (g, v, st) => `<b>🔧 Werkstatt</b><p class="m">Fahrzeuge brauchen Pf
 
 function jStart(k) { const v = VEH[G.id]; G.job = {k, steps: JOBS[k].steps(v), i: 0, mist: 0}; jStep() }
 function jStep() {
-  const J = G.job, s = J.steps[J.i], box = $('#vp .vpc'); if (!box) return; const j = JOBS[J.k] || {icon: '', name: J.title};
+  const J = G.job, s = J.steps[J.i], box = jbox(); if (!box) return; const j = JOBS[J.k] || {icon: '', name: J.title};
   const head = `<div class="row sp"><b>${j.icon} ${j.name}</b><span class="m">${J.i + 1}/${J.steps.length}</span></div><div class="steps" style="margin:8px 0 12px">${J.steps.map((_, i) => `<i class="${i <= J.i ? 'on' : ''}"></i>`).join('')}</div>`;
   if (!s) return jDone();
   box.innerHTML = head + (JSTEP[s.t](s) || '') + '<div id="jf"></div>'; if (JINIT[s.t]) JINIT[s.t](s);
 }
+const jbox = () => $('#sheet .vpc') || $('#vp .vpc');
 const jNext = (d = 600) => setTimeout(() => { if (!G.job) return; G.job.i++; jStep() }, d);
 const jfb = (c, h) => { const e = $('#jf'); if (e) e.innerHTML = `<div class="fb ${c}">${h}</div>` };
 function jDone() {
-  const st = gst(G.id), J = G.job; G.job = null; snd('win'); confetti();
-  if (J.after) { J.after(); save(); vRefresh(); $('#vp .vpc').insertAdjacentHTML('afterbegin', `<div class="fb good"><b>${esc(J.title)}: fertig!</b>${J.mist ? ' ' + J.mist + ' Fehlgriffe.' : ' Fehlerfrei geschraubt.'}</div>`); return }
+  const st = gst(G.id), J = G.job; G.job = null; snd('win'); confetti(); if (window.ws3dReset) ws3dReset();
+  if (J.after) { J.after(); save(); vRe(); jbox().insertAdjacentHTML('afterbegin', `<div class="fb good"><b>${esc(J.title)}: fertig!</b>${J.mist ? ' ' + J.mist + ' Fehlgriffe.' : ' Fehlerfrei geschraubt.'}</div>`); return }
   st.svc = st.svc || {}; st.svc[J.k] = st.km; S.points += 2; S.coins = (S.coins || 0) + 2; save();
-  $('#vp .vpc').innerHTML = `<div class="center"><div class="big">🔧✅</div><b style="font-size:20px">Auftrag erledigt!</b><p class="m">${esc(JOBS[J.k].name)}${J.mist ? ' · ' + J.mist + ' Fehlgriffe' : ' · fehlerfrei'} · +2 Punkte · +2 🪙</p></div><button class="btn alt" onclick="vRefresh();vPanel('shop')">Zurück zur Werkstatt</button>`;
+  jbox().innerHTML = `<div class="center"><div class="big">🔧✅</div><b style="font-size:20px">Auftrag erledigt!</b><p class="m">${esc(JOBS[J.k].name)}${J.mist ? ' · ' + J.mist + ' Fehlgriffe' : ' · fehlerfrei'} · +2 Punkte · +2 🪙</p></div><button class="btn alt" onclick="${view === 'ws' ? 'vRe()' : 'vRefresh();vPanel(\'shop\')'}">Zurück zur Werkstatt</button>`;
 }
 const JSTEP = {
   mc(s) { s.ord = shuffle(s.o.map((_, i) => i)); return `<div class="q" style="font-size:19px">${esc(s.q)}</div>${s.ord.map(i => `<button class="opt" onclick="jmc(this,${i})">${esc(s.o[i])}</button>`).join('')}` },
@@ -451,6 +453,7 @@ const JINIT = {
     const ang = e => { const b = svg.getBoundingClientRect(); return Math.atan2(e.clientY - b.top - b.height / 2, e.clientX - b.left - b.width / 2) };
     const draw = () => { const f = Math.min(1, Math.max(0, sum * s.dir) / need), lift = s.dir < 0 ? f : 1 - f;
       $('#nut').setAttribute('transform', `rotate(${(sum * 180 / Math.PI).toFixed(1)}) scale(${(1 + .16 * lift).toFixed(3)})`); $('#wr').setAttribute('transform', `rotate(${(wa * 180 / Math.PI).toFixed(1)})`);
+      if (window.ws3dTurn) ws3dTurn(f, s.dir);
       $('#tb').style.width = f * 100 + '%'; $('#tpct').textContent = Math.round(f * 100) + ' %'; if (tq) { $('#tqi').style.height = Math.min(100, 100 * torque / mx) + '%'; $('#tqi').style.background = torque > T * 1.12 ? '#ff453a' : torque >= T * .88 ? '#30d158' : '#ffd60a'; $('#tqv').textContent = Math.round(torque) + ' Nm' } };
     const finish = t => { done = true; w.onpointermove = null; jfb('good', t); snd('ok'); jNext(1100) };
     w.onpointerdown = e => { if (done) return; w.setPointerCapture(e.pointerId); last = ang(e) };
@@ -472,7 +475,7 @@ const JINIT = {
       else { G.job.mist++; jfb('bad', `${Math.round(torque)} Nm sind zu fest! Das kann das Gewinde beschädigen. Etwas lösen und neu anziehen.`); torque = T * .5; draw() } };
     draw() },
   slide(s) { const r = $('#js'), upd = () => { const v = +r.value; if (s.chain) { const sag = 4 + (100 - v) * .42; $('#chs').innerHTML = `<circle cx="45" cy="45" r="16" fill="none" stroke="#8e8e93" stroke-width="4"/><circle cx="255" cy="45" r="30" fill="none" stroke="#8e8e93" stroke-width="4"/><path d="M45 29 Q150 ${29 - (v > 95 ? 0 : 2)} 255 15" fill="none" stroke="#d1d1d6" stroke-width="5" stroke-dasharray="5 3"/><path d="M45 61 Q150 ${61 + sag} 255 75" fill="none" stroke="#d1d1d6" stroke-width="5" stroke-dasharray="5 3"/>` } else $('#sv').textContent = de(v, 2) + s.unit }; r.oninput = upd; upd() },
-  hold(s) { holdBtn(s, p => { $('#hb2').style.width = p + '%'; if (p % 10 < 4) tone(s.ico === '🧴' ? 2500 + Math.random() * 800 : 300, .04, 0, s.ico === '🧴' ? 'sawtooth' : 'triangle', .012) }, () => { jfb('good', 'Erledigt!'); jNext(700) }, s.ms) },
+  hold(s) { if (window.ws3dOut) ws3dOut(true); holdBtn(s, p => { $('#hb2').style.width = p + '%'; if (p % 10 < 4) tone(s.ico === '🧴' ? 2500 + Math.random() * 800 : 300, .04, 0, s.ico === '🧴' ? 'sawtooth' : 'triangle', .012) }, () => { jfb('good', 'Erledigt!'); jNext(700) }, s.ms) },
   fill(s) { const b = $('#jh'); let iv = null; const stop = () => { if (!iv) return; clearInterval(iv); iv = null;
       if (G.fv > s.hi) { G.job.mist++; jfb('bad', 'Zu viel! Etwas Luft ablassen und nochmal.'); G.fv = s.start; $('#fv').textContent = de(G.fv, 2); $('#fgi').style.height = 100 * G.fv / s.max + '%' }
       else if (G.fv < s.lo) jfb('', 'Noch nicht genug, weiter pumpen.'); else { b.disabled = true; jfb('good', 'Genau richtig!'); snd('ok'); jNext(900) } };
@@ -489,7 +492,7 @@ function jslide() { const s = G.job.steps[G.job.i], v = +$('#js').value;
   if (v >= s.lo - 1e-9 && v <= s.hi + 1e-9) { snd('ok'); jfb('good', '<b>Passt!</b> ' + esc(s.why || '')); jNext(1700) }
   else { G.job.mist++; snd('bad'); jfb('bad', s.chain ? (v < s.lo ? 'Zu locker, die Kette könnte abspringen.' : 'Zu straff, das zerstört Kette und Lager.') : (v < s.lo ? 'Zu klein. Der Funke wird schwach.' : 'Zu groß. Der Funke springt schlecht über.') + ' Stell es in den grünen Bereich.') } }
 function jdip(b, k) { if (b.disabled) return; if (k !== G.oil) { G.job.mist++; b.classList.add('bad'); b.disabled = true; snd('bad'); jfb('bad', 'Schau genau: Wo endet das Braune? MIN ist näher an der Spitze, MAX weiter hinten.'); return }
-  b.classList.add('ok'); snd('ok'); document.querySelectorAll('#vp .opt').forEach(x => x.disabled = true);
+  b.classList.add('ok'); snd('ok'); jbox().querySelectorAll('.opt').forEach(x => x.disabled = true);
   if (k === 'low') { jfb('good', '<b>Richtig, zu wenig!</b> Jetzt nachfüllen.'); G.job.steps.splice(G.job.i + 1, 0, {t: 'fill', q: 'Fülle Motoröl nach, bis der Stand zwischen MIN und MAX liegt. Langsam, nicht überfüllen!', max: 100, lo: 60, hi: 80, start: 22, unit: ' %', ico: '🛢️', btn: 'Einfüllen'}) }
   else jfb('good', '<b>Richtig, alles gut!</b> Messstab wieder rein.'); jNext(1300) }
 

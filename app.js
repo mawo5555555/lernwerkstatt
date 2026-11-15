@@ -1,7 +1,7 @@
 'use strict';
 const $ = s => document.querySelector(s);
 const KEY = 'wt-state-v1';
-const VERSION = '2.3';
+const VERSION = '2.5';
 let S;
 try { S = JSON.parse(localStorage.getItem(KEY)) } catch (e) {}
 S = Object.assign({points: 0, days: [], done: {}, stars: {}, miss: {}, log: [], ratings: [], theme: 'simson', subj: 'mathe', name: '', daily: {}, goalDate: '', sound: true, rev: {}}, S || {});
@@ -92,13 +92,15 @@ const ringsHTML = () => {
 function go(v) { clearTimers(); if (typeof engStop === 'function') engStop(); run = null; view = v; render() }
 
 function render() {
+  if (view !== 'ws' && typeof ws3dStop === 'function') ws3dStop();
   const a = $('#app');
   const tabs = [['home', '🏠', 'Heute'], ['missions', '📚', 'Lernen'], ['garage', '🏁', 'Garage'], ['parents', '👪', 'Eltern']];
-  $('#tab').innerHTML = tabs.map(t => `<button class="${view === t[0] || (view === 'veh' && t[0] === 'garage') ? 'on' : ''}" onclick="go('${t[0]}')"><span>${t[1]}</span>${t[2]}</button>`).join('');
+  $('#tab').innerHTML = tabs.map(t => `<button class="${view === t[0] || ((view === 'veh' || view === 'ws') && t[0] === 'garage') ? 'on' : ''}" onclick="go('${t[0]}')"><span>${t[1]}</span>${t[2]}</button>`).join('');
   $('#tab').style.display = view === 'run' ? 'none' : 'flex';
   if (view === 'home') { const p = plan(); setAccent(SUBJECTS[p.main.subject].color); a.innerHTML = home(p) }
   else if (view === 'missions') { setAccent(SUBJECTS[S.subj].color); a.innerHTML = missions() }
   else if (view === 'garage') { setAccent('#e0b43a'); a.innerHTML = garage() }
+  else if (view === 'ws') { setAccent('#e0b43a'); a.innerHTML = wsView(); requestAnimationFrame(ws3dStart) }
   else if (view === 'veh') { setAccent('#e0b43a'); a.innerHTML = vehView(); requestAnimationFrame(() => drawDirt(false)) }
   else if (view === 'parents') { setAccent('#3b8cff'); a.innerHTML = parents() }
   else if (view === 'run') step();
