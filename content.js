@@ -20,6 +20,8 @@ const SUBJECTS = {
 };
 
 const MISSIONS = [];
+// Missionen mit eigenem Titelbild (img/m-<id>.jpg)
+const MIMG_LIST = ['mathe-1', 'mathe-2', 'mathe-8', 'nawi-8', 'nawi-13', 'englisch-10', 'technik-1', 'technik-8'];
 
 // ---- Hilfen
 const de = (n, d = 1) => (+n).toFixed(d).replace('.', ',').replace(/(,\d*?)0+$/, '$1').replace(/,$/, '');

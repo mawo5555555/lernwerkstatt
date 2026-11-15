@@ -1,7 +1,7 @@
 'use strict';
 const $ = s => document.querySelector(s);
 const KEY = 'wt-state-v1';
-const VERSION = '1.6.3';
+const VERSION = '1.7';
 let S;
 try { S = JSON.parse(localStorage.getItem(KEY)) } catch (e) {}
 S = Object.assign({points: 0, days: [], done: {}, stars: {}, miss: {}, log: [], ratings: [], theme: 'simson', subj: 'mathe', name: '', daily: {}, goalDate: '', sound: true, rev: {}}, S || {});
@@ -116,8 +116,8 @@ function home(p) {
   const nxt = GARAGE.find(x => x.need > S.points);
   const bonusDone = doneToday(p.bonus.id), box = missCount(), due = dueMissions().length;
   const hour = new Date().getHours(), hi = hour < 11 ? 'Guten Morgen' : hour < 18 ? 'Hallo' : 'Guten Abend';
-  return `<div class="top"><div><div class="m">${new Date().toLocaleDateString('de-DE', {weekday: 'long', day: 'numeric', month: 'long'})}</div><h1>${hi}${S.name ? ', ' + esc(S.name) : ''}!</h1></div></div>
-  <div class="chips"><span class="chip">🔥 ${st} ${st === 1 ? 'Tag' : 'Tage'}</span><span class="chip">⭐ ${S.points} Punkte</span></div>
+  return `<div class="top"><div><div class="m">${new Date().toLocaleDateString('de-DE', {weekday: 'long', day: 'numeric', month: 'long'})}</div><h1 onclick="egg('h1',5,()=>ride('🛵💨','Ring-ding-ding! Zweitakt-Alarm'))">${hi}${S.name ? ', ' + esc(S.name) : ''}!</h1></div></div>
+  <div class="chips"><span class="chip" onclick="egg('fire',3,()=>toast('Heiß! Aber bitte keinen Kolbenklemmer bauen 😅'))">🔥 ${st} ${st === 1 ? 'Tag' : 'Tage'}</span><span class="chip" onclick="egg('star',5,()=>ride('🚜🌾','Rasentraktor-Parade! Bahn frei.'))">⭐ ${S.points} Punkte</span></div>
   ${ringsHTML()}
   <div class="hero"><div class="cv hi"><img src="${coverSrc(m)}" alt="" onerror="this.remove()"></div><div class="m" style="color:rgba(255,255,255,.85)">Mission des Tages · ${sub.emoji} ${sub.long} · ${m.min} Min.</div>
     <h3>${t.emoji} ${esc(m.title)}</h3><p>${esc(m.sub)}</p>
@@ -157,7 +157,7 @@ function projectView() {
 }
 function garage() {
   return projectView() + `<h1>Garage</h1><p class="m">Für jede Mission gibt es Punkte. Damit schaltest du neue Fahrzeuge frei.</p>
-  ${GARAGE.map(g => `<div class="card gcard ${S.points < g.need ? 'lock' : ''}"><div class="gimg">${gimg(g)}</div><div><b>${esc(g.name)}</b><div class="m">${S.points < g.need ? '🔒 ab ' + g.need + ' Punkten' : esc(g.text)}</div></div></div>`).join('')}`;
+  ${GARAGE.map(g => `<div class="card gcard ${S.points < g.need ? 'lock' : ''}" style="cursor:pointer" onclick="honk('${g.id}')"><div class="gimg">${gimg(g)}</div><div><b>${esc(g.name)}</b><div class="m">${S.points < g.need ? '🔒 ab ' + g.need + ' Punkten' : esc(g.text)}</div></div></div>`).join('')}`;
 }
 
 function parents() {
@@ -183,7 +183,7 @@ function parents() {
   <div class="card"><div class="row sp"><b>Töne</b><label style="display:flex;gap:8px;align-items:center"><input type="checkbox" ${S.sound ? 'checked' : ''} onchange="S.sound=this.checked;save()"> an</label></div><p class="m">Kurze Klänge bei richtigen Antworten und am Ende einer Mission.</p></div>
   <details class="card"><summary><b>Wie die App lernt (Lernprinzipien)</b></summary><p class="m">• <b style="color:var(--t)">Abrufen statt nur lesen:</b> Fast alles sind Fragen und Aufgaben. Aktives Erinnern festigt Wissen besser als bloßes Durchlesen.<br>• <b style="color:var(--t)">Verteiltes Wiederholen:</b> Der Boxenstopp bringt Fehler und ältere Missionen nach 3, 7, 14 und 30 Tagen zurück.<br>• <b style="color:var(--t)">Abwechslung:</b> Die Fächer wechseln täglich (Verschränken statt Blocklernen).<br>• <b style="color:var(--t)">Sofortiges Feedback:</b> Jede Antwort wird erklärt, nicht nur bewertet.<br>• <b style="color:var(--t)">Wachstum statt Fehlerangst:</b> Sterne zählen den ersten Versuch, aber Fehler führen zu Wiederholung, nicht zu Punktabzug.<br>• <b style="color:var(--t)">Faire Ziele:</b> Wochenziel 5 von 7 Tagen, damit ein freier Tag die Serie nicht zerstört.<br>• <b style="color:var(--t)">Eigener Antrieb:</b> Eigene Interessen (Simson, Traktor, Tuning) und das große Ziel geben Sinn, Punkte sind nur Beiwerk.</p></details>
   <details class="card"><summary><b>Bildnachweis</b></summary>${CREDITS.map(c => `<p class="m"><b style="color:var(--t)">${esc(c.title)}</b><br>${esc(c.author)} · ${esc(c.license)} · <a style="color:#0a84ff" href="https://commons.wikimedia.org/wiki/File:${encodeURI(c.page)}" target="_blank" rel="noopener">Quelle</a></p>`).join('')}<p class="m">Fotos von Wikimedia Commons, in der Größe angepasst. Fotos vom Rasentraktor: eigene Aufnahmen. Die Zeichnungen sind selbst erstellt. Die Garage-Bilder von Simson S51, SR50, Schwalbe, Traktor mit Anhänger, Unimog und Feldhäcksler wurden mit KI (ChatGPT, Gemini) erzeugt und zeigen typische, aber keine echten Fahrzeuge.</p></details>
-  <div class="card"><b>Version</b><p class="m">Lernwerkstatt, Version ${VERSION}. Missionen: ${MISSIONS.length}.</p></div>
+  <div class="card"><b>Version</b><p class="m" onclick="egg('ver',5,()=>toast('🔧 Merke: Zweitakt-Gemisch 1:50. Gebaut mit Liebe, Öl und Kaffee.'))">Lernwerkstatt, Version ${VERSION}. Missionen: ${MISSIONS.length}.</p></div>
   <div class="card"><b>Synchronisation</b><p class="m">Noch nicht aktiv. Der Fortschritt liegt nur auf diesem Gerät.</p></div>
   <button class="btn alt" onclick="if(confirm('Wirklich alle Fortschritte löschen?')){S.points=0;S.days=[];S.done={};S.stars={};S.miss={};S.log=[];S.ratings=[];S.daily={};S.goalDate='';save();render()}">Fortschritt zurücksetzen</button>`;
 }
@@ -283,7 +283,7 @@ function qpick(i) {
   if (c.tries === 1) scoreQ(false);
   const left = c.order.filter(k => !$('#o' + k).disabled).length;
   if (c.tries >= 2 || left <= 1) { $('#o0').classList.add('ok'); document.querySelectorAll('.opt').forEach(x => x.disabled = true); fb('bad', '<b>Die richtige Antwort ist grün.</b> ' + rich(s.why)); qDone() }
-  else fb('bad', 'Nicht ganz. Versuche es noch einmal.');
+  else fb('bad', nope() + 'Versuche es noch einmal.');
 }
 function ncheck() {
   const s = run.steps[run.i], c = run.cur, inp = $('#in'); if (c.done || !inp.value.trim()) return;
@@ -291,7 +291,7 @@ function ncheck() {
   if (c.tries === 1) scoreQ(ok);
   if (ok) { inp.disabled = true; fb('good', '<b>Richtig!</b> ' + rich(s.why)); qDone() }
   else if (c.tries >= 2) { inp.disabled = true; fb('bad', '<b>Die Lösung ist ' + de(s.a, 3) + (s.unit ? ' ' + esc(s.unit) : '') + '.</b> ' + rich(s.why)); qDone() }
-  else { fb('bad', 'Noch nicht ganz. ' + esc(s.hint || 'Rechne noch einmal in Ruhe.')); inp.select() }
+  else { fb('bad', nope() + esc(s.hint || 'Rechne noch einmal in Ruhe.')); inp.select() }
 }
 function tcheck() {
   const s = run.steps[run.i], c = run.cur, inp = $('#in'); if (c.done || !inp.value.trim()) return;
@@ -299,7 +299,7 @@ function tcheck() {
   if (c.tries === 1) scoreQ(ok);
   if (ok) { inp.disabled = true; fb('good', '<b>Richtig!</b> ' + rich(s.why)); qDone() }
   else if (c.tries >= 2) { inp.disabled = true; fb('bad', '<b>Richtig wäre: ' + esc(s.a[0]) + '.</b> ' + rich(s.why)); qDone() }
-  else { fb('bad', 'Noch nicht ganz. ' + esc(s.hint || 'Schau noch einmal genau hin.')); inp.select() }
+  else { fb('bad', nope() + esc(s.hint || 'Schau noch einmal genau hin.')); inp.select() }
 }
 function mpick(side, i) {
   const s = run.steps[run.i], c = run.cur, b = $('#m' + side + i); if (c.done || b.classList.contains('ok')) return;
@@ -457,7 +457,7 @@ function finish() {
   const unlocked = GARAGE.find(g => before < g.need && S.points >= g.need), mc = missCount();
   const praise = !run.tot ? 'Gut gemacht. Dranbleiben zählt.' : stars === 3 ? ['Stark! Das saß.', 'Sauber gearbeitet, das war fast fehlerfrei.', 'Das war Meisterarbeit.'][Math.floor(Math.random() * 3)] : stars === 2 ? 'Gut gemacht. Mit Übung wird es noch sicherer.' : 'Aus Fehlern lernt man: Die kniffligen Aufgaben üben wir im Boxenstopp.';
   if (stars >= 2 || rankUp || goalNow) { snd('win'); confetti() }
-  $('#app').innerHTML = `${cover(coverSrc(m), {cls: 'tall'})}<div class="center" style="margin-top:14px"><div class="big">🏁</div><h1>${box ? 'Boxenstopp erledigt!' : 'Mission geschafft!'}</h1>
+  $('#app').innerHTML = `${cover(coverSrc(m), {cls: 'tall'})}<div class="center" style="margin-top:14px"><div class="big" onclick="egg('flag',3,()=>{confetti();ride('🏎️💨','Zielflagge! Brumm brumm!')})">🏁</div><h1>${box ? 'Boxenstopp erledigt!' : 'Mission geschafft!'}</h1>
     ${run.tot ? `<div class="stars big2">${starStr(stars)}</div><p class="m">${run.ok} von ${run.tot} Aufgaben gleich beim ersten Versuch richtig.</p>` : ''}
     <p class="m">Du hast ${pts} Punkte geholt${st > 1 ? ' und ' + st + ' Tage in Folge gelernt' : ''}.</p>
     <p style="font-weight:600">${praise}</p></div>
@@ -481,9 +481,19 @@ function calcOpen() {
   <div class="row" style="gap:10px"><button class="btn alt" style="margin:8px 0" onclick="calcClose()">Schließen</button><button class="btn" style="margin:8px 0" onclick="calcUse()">Übernehmen</button></div></div>`;
   document.body.appendChild(o);
 }
-function calcKey(k) { const d = $('#cd'); if (k === 'C') CE = ''; else if (k === '=') { const v = calcEval(CE); CE = isFinite(v) ? calcFmt(v) : ''; d.textContent = isFinite(v) ? CE : 'Fehler'; return } else CE += (k === '√' ? '√(' : k); d.textContent = CE || '0' }
+function calcKey(k) { const d = $('#cd'); if (k === 'C') CE = ''; else if (k === '=') { const v = calcEval(CE); CE = isFinite(v) ? calcFmt(v) : ''; if (v === 125) toast('125: Das ist das große Ziel, der MTX-Zylinder 🏆'); else if (v === 50) toast('50 ccm: Mokick-Klasse 🛵'); else if (v === 70) toast('70 ccm: der Klassiker unter den Tuning-Sätzen 🔧'); d.textContent = isFinite(v) ? CE : 'Fehler'; return } else CE += (k === '√' ? '√(' : k); d.textContent = CE || '0' }
 function calcClose() { const c = $('#calc'); if (c) c.remove() }
 function calcUse() { const v = calcEval(CE), inp = $('#in'); if (isFinite(v) && inp && !inp.disabled) inp.value = calcFmt(v).replace(/\.\d*$/, m => m); calcClose(); if (inp) inp.focus() }
+
+// ---- Easter Eggs und kleine Überraschungen
+const eggN = {};
+const egg = (k, n, fn) => { eggN[k] = (eggN[k] || 0) + 1; clearTimeout(eggN[k + 't']); eggN[k + 't'] = setTimeout(() => eggN[k] = 0, 1800); if (eggN[k] >= n) { eggN[k] = 0; fn() } };
+function toast(t) { const e = document.createElement('div'); e.className = 'toast'; e.textContent = t; document.body.appendChild(e); setTimeout(() => e.remove(), 3200) }
+const brumm = () => [90, 110, 95, 130, 105, 150, 120].forEach((f, i) => tone(f, .12, i * .08, 'sawtooth', .07));
+function ride(em, t) { const r = document.createElement('div'); r.className = 'ride'; r.textContent = em; document.body.appendChild(r); setTimeout(() => r.remove(), 3600); brumm(); if (t) toast(t) }
+function honk(id) { const g = GARAGE.find(x => x.id === id); if (!g) return; if (S.points < g.need) toast('🔒 ' + g.name + ' wartet noch: ab ' + g.need + ' Punkten'); else ride(g.emoji, g.name + ': Brumm brumm!') }
+const OOPS = ['Auch die Simson springt nicht immer beim ersten Kick an.', 'Kolben klemmt kurz. Kein Problem, ölen und weiter.', 'Fast! Zündkerze kurz abwischen und neu denken.', 'Schrauber-Weisheit: Nach fest kommt ab. Also ruhig bleiben.', 'Auch der ZT 300 braucht manchmal zwei Anläufe.', 'Fehlzündung! Passiert den Besten.'];
+const nope = () => Math.random() < .35 ? OOPS[Math.floor(Math.random() * OOPS.length)] + ' ' : 'Nicht ganz. ';
 
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => {});
 render();
