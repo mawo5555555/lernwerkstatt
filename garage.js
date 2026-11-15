@@ -496,3 +496,6 @@ function vCheck(c) {
     (job ? `<button class="btn" onclick="G.panne=null;vPanel('shop');jStart('${job}')">🔧 Reparieren: ${JOBS[job].name}</button>` : `<button class="gas" id="jh" style="width:100%">🔧 ${P.p.fix} (halten)</button><div class="bar" style="margin-top:8px"><i id="hb2" style="width:0"></i></div>`);
   if (!job) holdBtn({}, p => { $('#hb2').style.width = p + '%' }, () => { G.panne = null; const v = VEH[G.id]; $('#pf').innerHTML = '<div class="fb good">Repariert! Jetzt nochmal starten.</div>'; setTimeout(() => vPanel('start'), 1200) }, 1500);
 }
+
+// ---- Testmodus nur lokal (nicht auf GitHub Pages): ?test schaltet alles frei und macht Wartung fällig
+if (/[?&]test\b/.test(location.search) && !/github\.io$/.test(location.hostname)) { S.points = Math.max(S.points, 2500); GARAGE.forEach(g => { const st = gst(g.id); st.km = Math.max(st.km, 60) }); save(); setTimeout(() => toast('🧪 Testmodus: alles freigeschaltet'), 300) }
