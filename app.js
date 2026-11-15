@@ -1,7 +1,7 @@
 'use strict';
 const $ = s => document.querySelector(s);
 const KEY = 'wt-state-v1';
-const VERSION = '1.7';
+const VERSION = '2.0';
 let S;
 try { S = JSON.parse(localStorage.getItem(KEY)) } catch (e) {}
 S = Object.assign({points: 0, days: [], done: {}, stars: {}, miss: {}, log: [], ratings: [], theme: 'simson', subj: 'mathe', name: '', daily: {}, goalDate: '', sound: true, rev: {}}, S || {});
@@ -52,10 +52,10 @@ const theme = id => THEMES[id];
 
 // ---- Titelbilder (Fotos als Ausschnitte, Sport als Zeichnung). Eigene Bilder: img/m-<id>.jpg und Id in MIMG eintragen
 const COVERS = {simson: ['simson-ki-s51', 'simson-1', 'simson-ki-schwalbe', 'simson-ki-sr50', 'simson-3', 'simson-4'], traktor: ['ki-traktor-anhaenger', 'traktor-1', 'ki-unimog', 'traktor-3', 'traktor-2', 'traktor-4'], hof: ['hof-1', 'ki-feldhaecksler', 'hof-3', 'hof-2', 'hof-4'], tuning: ['tuning-1', 'tuning-3', 'tuning-2', 'tuning-4'], sport: ['sport-1', 'sport-2']};
-const SUBJ_COVER = {mathe: 'tuning-2', deutsch: 'simson-1', englisch: 'traktor-4', nawi: 'hof-4', technik: 'tuning-3'};
+const SUBJ_COVER = {mathe: 'img/m-mathe-8.jpg', deutsch: 'img/m-deutsch-3.jpg', englisch: 'img/m-englisch-7.jpg', nawi: 'img/m-nawi-8.jpg', technik: 'img/m-technik-3.jpg'};
 const MIMG = typeof MIMG_LIST !== 'undefined' ? MIMG_LIST : [];
 const hash = s => [...String(s)].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7);
-const coverFile = n => 'img/cover/' + n + (n.startsWith('sport') ? '.svg' : '.jpg');
+const coverFile = n => n.startsWith('img/') ? n : 'img/cover/' + n + (n.startsWith('sport') ? '.svg' : '.jpg');
 function coverSrc(m, k = 0) { if (MIMG.includes(m.id)) return 'img/m-' + m.id + '.jpg'; const l = COVERS[m.theme] || COVERS.tuning; return coverFile(l[(hash(m.id) + k) % l.length]) }
 function cover(src, o = {}) { const sub = o.subj ? SUBJECTS[o.subj] : null;
   return `<div class="cv ${o.cls || ''}"><img src="${src}" alt="" loading="lazy" onerror="this.remove()">${sub ? `<span class="cvc">${sub.emoji} ${sub.long}${o.min ? ' · ' + o.min + ' Min.' : ''}</span>` : ''}${o.title ? `<div class="cvt">${o.title}</div>` : ''}</div>`; }
@@ -182,7 +182,7 @@ function parents() {
   <div class="card"><b>Name in der App</b><input id="nm" value="${esc(S.name)}" placeholder="Vorname (optional)" style="width:100%;margin-top:8px;padding:12px;border-radius:12px;border:0;background:var(--card2);color:var(--t);font:inherit" onchange="S.name=this.value.trim().slice(0,20);save()"></div>
   <div class="card"><div class="row sp"><b>Töne</b><label style="display:flex;gap:8px;align-items:center"><input type="checkbox" ${S.sound ? 'checked' : ''} onchange="S.sound=this.checked;save()"> an</label></div><p class="m">Kurze Klänge bei richtigen Antworten und am Ende einer Mission.</p></div>
   <details class="card"><summary><b>Wie die App lernt (Lernprinzipien)</b></summary><p class="m">• <b style="color:var(--t)">Abrufen statt nur lesen:</b> Fast alles sind Fragen und Aufgaben. Aktives Erinnern festigt Wissen besser als bloßes Durchlesen.<br>• <b style="color:var(--t)">Verteiltes Wiederholen:</b> Der Boxenstopp bringt Fehler und ältere Missionen nach 3, 7, 14 und 30 Tagen zurück.<br>• <b style="color:var(--t)">Abwechslung:</b> Die Fächer wechseln täglich (Verschränken statt Blocklernen).<br>• <b style="color:var(--t)">Sofortiges Feedback:</b> Jede Antwort wird erklärt, nicht nur bewertet.<br>• <b style="color:var(--t)">Wachstum statt Fehlerangst:</b> Sterne zählen den ersten Versuch, aber Fehler führen zu Wiederholung, nicht zu Punktabzug.<br>• <b style="color:var(--t)">Faire Ziele:</b> Wochenziel 5 von 7 Tagen, damit ein freier Tag die Serie nicht zerstört.<br>• <b style="color:var(--t)">Eigener Antrieb:</b> Eigene Interessen (Simson, Traktor, Tuning) und das große Ziel geben Sinn, Punkte sind nur Beiwerk.</p></details>
-  <details class="card"><summary><b>Bildnachweis</b></summary>${CREDITS.map(c => `<p class="m"><b style="color:var(--t)">${esc(c.title)}</b><br>${esc(c.author)} · ${esc(c.license)} · <a style="color:#0a84ff" href="https://commons.wikimedia.org/wiki/File:${encodeURI(c.page)}" target="_blank" rel="noopener">Quelle</a></p>`).join('')}<p class="m">Fotos von Wikimedia Commons, in der Größe angepasst. Fotos vom Rasentraktor: eigene Aufnahmen. Die Zeichnungen sind selbst erstellt. Die Garage-Bilder von Simson S51, SR50, Schwalbe, Traktor mit Anhänger, Unimog und Feldhäcksler wurden mit KI (ChatGPT, Gemini) erzeugt und zeigen typische, aber keine echten Fahrzeuge.</p></details>
+  <details class="card"><summary><b>Bildnachweis</b></summary>${CREDITS.map(c => `<p class="m"><b style="color:var(--t)">${esc(c.title)}</b><br>${esc(c.author)} · ${esc(c.license)} · <a style="color:#0a84ff" href="https://commons.wikimedia.org/wiki/File:${encodeURI(c.page)}" target="_blank" rel="noopener">Quelle</a></p>`).join('')}<p class="m">Fotos von Wikimedia Commons, in der Größe angepasst. Fotos vom Rasentraktor: eigene Aufnahmen. Die Zeichnungen sind selbst erstellt. Die Garage-Bilder von Simson S51, SR50, Schwalbe, Traktor mit Anhänger, Unimog und Feldhäcksler sowie die Titelbilder vieler Missionen wurden mit KI (ChatGPT, Gemini) erzeugt und zeigen typische, aber keine echten Fahrzeuge.</p></details>
   <div class="card"><b>Version</b><p class="m" onclick="egg('ver',5,()=>toast('🔧 Merke: Zweitakt-Gemisch 1:50. Gebaut mit Liebe, Öl und Kaffee.'))">Lernwerkstatt, Version ${VERSION}. Missionen: ${MISSIONS.length}.</p></div>
   <div class="card"><b>Synchronisation</b><p class="m">Noch nicht aktiv. Der Fortschritt liegt nur auf diesem Gerät.</p></div>
   <button class="btn alt" onclick="if(confirm('Wirklich alle Fortschritte löschen?')){S.points=0;S.days=[];S.done={};S.stars={};S.miss={};S.log=[];S.ratings=[];S.daily={};S.goalDate='';save();render()}">Fortschritt zurücksetzen</button>`;
@@ -495,5 +495,5 @@ function honk(id) { const g = GARAGE.find(x => x.id === id); if (!g) return; if 
 const OOPS = ['Auch die Simson springt nicht immer beim ersten Kick an.', 'Kolben klemmt kurz. Kein Problem, ölen und weiter.', 'Fast! Zündkerze kurz abwischen und neu denken.', 'Schrauber-Weisheit: Nach fest kommt ab. Also ruhig bleiben.', 'Auch der ZT 300 braucht manchmal zwei Anläufe.', 'Fehlzündung! Passiert den Besten.'];
 const nope = () => Math.random() < .35 ? OOPS[Math.floor(Math.random() * OOPS.length)] + ' ' : 'Nicht ganz. ';
 
-if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => {});
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) { const had = !!navigator.serviceWorker.controller; navigator.serviceWorker.addEventListener('controllerchange', () => { if (had && !run) location.reload() }); navigator.serviceWorker.register('sw.js').catch(() => {}) }
 render();

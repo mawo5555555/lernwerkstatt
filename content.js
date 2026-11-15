@@ -21,7 +21,7 @@ const SUBJECTS = {
 
 const MISSIONS = [];
 // Missionen mit eigenem Titelbild (img/m-<id>.jpg)
-const MIMG_LIST = ['mathe-1', 'mathe-2', 'mathe-8', 'nawi-8', 'nawi-13', 'englisch-10', 'technik-1', 'technik-8'];
+const MIMG_LIST = ['mathe-1', 'mathe-2', 'mathe-8', 'nawi-8', 'nawi-13', 'englisch-10', 'technik-1', 'technik-8', 'mathe-3', 'mathe-4', 'mathe-6', 'mathe-7', 'deutsch-3', 'deutsch-7', 'nawi-2', 'nawi-6', 'nawi-9', 'nawi-10', 'nawi-12', 'nawi-16', 'englisch-7', 'englisch-11', 'technik-3', 'technik-10'];
 
 // ---- Hilfen
 const de = (n, d = 1) => (+n).toFixed(d).replace('.', ',').replace(/(,\d*?)0+$/, '$1').replace(/,$/, '');

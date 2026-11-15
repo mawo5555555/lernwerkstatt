@@ -29,6 +29,7 @@ Dann `http://localhost:8731` öffnen.
 | `c-sprechen.js` | kleine Sprech-Übungen (Bestandteil von Deutsch) |
 | `sw.js`, `manifest.webmanifest` | Offline-Cache und Installation |
 | `img/foto/` | Fotos: eigene Aufnahmen des Rasentraktors und freie Bilder von Wikimedia Commons (Nachweis in der App unter Eltern, Bildnachweis) |
+| `img/ki/`, `img/cover/`, `img/m-*.jpg` | KI-erzeugte Bilder (ChatGPT, Gemini) für Garage, Titelbilder und Missionen; Missionsbilder stehen in `MIMG_LIST` (content.js) |
 | `img/` | optionale Bilder: `garage1.png` bis `garage8.png`, `m-<mission-id>.jpg` (siehe `BILD-PROMPTS.md`) |
 
 ## Neue Missionen hinzufügen
