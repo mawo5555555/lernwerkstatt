@@ -73,6 +73,17 @@ audio{width:100%;margin-top:10px}
 .hs.sel{background:#fff;color:#111;transform:scale(1.15)}.hs.ok{background:var(--ok);border-color:var(--ok)}.hs.no{background:#ff453a;animation:shk .4s}
 .heroimg{width:100%;border-radius:18px;margin-bottom:10px;display:block}
 
+.cv{position:relative;border-radius:22px;overflow:hidden;margin:12px 0;background:var(--card2);aspect-ratio:720/378}
+.cv img{width:100%;height:100%;object-fit:cover;display:block}
+.cv::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.05) 35%,rgba(0,0,0,.72));pointer-events:none}
+.cv.hi{margin:-20px -20px 14px;border-radius:26px 26px 0 0;aspect-ratio:720/340}
+.cv.sm{aspect-ratio:720/230}.cv.tall{aspect-ratio:720/330}
+.cv .cvt{position:absolute;left:16px;right:16px;bottom:12px;z-index:1;color:#fff;font-size:28px;font-weight:800;letter-spacing:-.02em;text-shadow:0 2px 12px rgba(0,0,0,.6)}
+.cv .cvc{position:absolute;left:12px;bottom:12px;z-index:1;color:#fff;font-size:13px;font-weight:700;padding:5px 11px;border-radius:99px;background:rgba(0,0,0,.45);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.th2{width:62px;height:62px;border-radius:16px;overflow:hidden;position:relative;flex:none}.th2 img{width:100%;height:100%;object-fit:cover;display:block}.th2 span{position:absolute;right:3px;bottom:3px;font-size:15px;line-height:1;background:rgba(0,0,0,.6);border-radius:8px;padding:3px 4px}
+.thi{position:relative;height:74px;border-radius:14px;overflow:hidden;margin-bottom:10px;background:var(--card2)}.thi img{width:100%;height:100%;object-fit:cover;display:block}.thi span{position:absolute;left:8px;bottom:6px;font-size:26px;text-shadow:0 2px 8px rgba(0,0,0,.7)}
+.th{padding:10px 10px 14px}.th b,.th .m,.th .bar{margin-left:4px;margin-right:4px}
+
 #app>*{animation:rise .3s cubic-bezier(.2,.8,.2,1) both}@keyframes rise{from{opacity:0;transform:translateY(12px)}}
 .item,.btn,.opt,.mb,.th{transition:transform .12s ease,background .2s,border-color .2s}.item:active,.opt:active,.mb:active,.th:active{transform:scale(.97)}
 .ringcard{display:flex;gap:16px;align-items:center;background:linear-gradient(160deg,#1f1f23,#141416)}.ringcard .rl{font-size:14px;line-height:1.7;flex:1}.ringcard .rk{margin-top:6px;color:var(--m);font-size:13px;line-height:1.3}

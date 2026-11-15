@@ -1,7 +1,7 @@
 'use strict';
 const $ = s => document.querySelector(s);
 const KEY = 'wt-state-v1';
-const VERSION = '1.5';
+const VERSION = '1.6';
 let S;
 try { S = JSON.parse(localStorage.getItem(KEY)) } catch (e) {}
 S = Object.assign({points: 0, days: [], done: {}, stars: {}, miss: {}, log: [], ratings: [], theme: 'simson', subj: 'mathe', name: '', daily: {}, goalDate: '', sound: true, rev: {}}, S || {});
@@ -49,6 +49,17 @@ function plan() {
   return {main: MISSIONS.find(m => m.id === S.daily.main), bonus: MISSIONS.find(m => m.id === S.daily.bonus), pro: MISSIONS.find(m => m.id === S.daily.pro) || nextPro()};
 }
 const theme = id => THEMES[id];
+
+// ---- Titelbilder (Fotos als Ausschnitte, Sport als Zeichnung). Eigene Bilder: img/m-<id>.jpg und Id in MIMG eintragen
+const COVERS = {simson: ['simson-1', 'simson-3', 'simson-4'], traktor: ['traktor-1', 'traktor-3', 'traktor-2', 'traktor-4'], hof: ['hof-1', 'hof-3', 'hof-2', 'hof-4'], tuning: ['tuning-1', 'tuning-3', 'tuning-2', 'tuning-4'], sport: ['sport-1', 'sport-2']};
+const SUBJ_COVER = {mathe: 'tuning-2', deutsch: 'simson-1', englisch: 'traktor-4', nawi: 'hof-4', technik: 'tuning-3'};
+const MIMG = typeof MIMG_LIST !== 'undefined' ? MIMG_LIST : [];
+const hash = s => [...String(s)].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7);
+const coverFile = n => 'img/cover/' + n + (n.startsWith('sport') ? '.svg' : '.jpg');
+function coverSrc(m, k = 0) { if (MIMG.includes(m.id)) return 'img/m-' + m.id + '.jpg'; const l = COVERS[m.theme] || COVERS.tuning; return coverFile(l[(hash(m.id) + k) % l.length]) }
+function cover(src, o = {}) { const sub = o.subj ? SUBJECTS[o.subj] : null;
+  return `<div class="cv ${o.cls || ''}"><img src="${src}" alt="" loading="lazy" onerror="this.remove()">${sub ? `<span class="cvc">${sub.emoji} ${sub.long}${o.min ? ' · ' + o.min + ' Min.' : ''}</span>` : ''}${o.title ? `<div class="cvt">${o.title}</div>` : ''}</div>`; }
+
 function setAccent(c) { document.documentElement.style.setProperty('--ac', c) }
 const starStr = n => '★'.repeat(n) + '☆'.repeat(3 - n);
 const REV_INT = [3, 7, 14, 30];
@@ -95,7 +106,7 @@ function render() {
 }
 
 const mItem = (m, tag = '') => { const t = theme(m.theme), n = S.stars[m.id] || 0, d = S.done[m.id] || 0;
-  return `<button class="item" onclick="start('${m.id}')"><div class="dot" style="background:${t.color}33">${t.emoji}</div>
+  return `<button class="item" onclick="start('${m.id}')"><div class="th2" style="background:${t.color}55"><img src="${coverSrc(m)}" alt="" loading="lazy" onerror="this.remove()"><span>${SUBJECTS[m.subject].emoji}</span></div>
   <div style="flex:1"><b>${esc(m.title)}</b><span class="m">${esc(m.sub)} · ${m.min} Min.${m.pro ? ' · <b style="color:#ff453a">PROFI</b>' : ''}${tag}</span></div>
   ${d ? (m.speech ? `<span class="done">✓ ${d}×</span>` : `<span class="stars">${starStr(n)}</span>`) : ''}</button>`; };
 
@@ -108,7 +119,7 @@ function home(p) {
   return `<div class="top"><div><div class="m">${new Date().toLocaleDateString('de-DE', {weekday: 'long', day: 'numeric', month: 'long'})}</div><h1>${hi}${S.name ? ', ' + esc(S.name) : ''}!</h1></div></div>
   <div class="chips"><span class="chip">🔥 ${st} ${st === 1 ? 'Tag' : 'Tage'}</span><span class="chip">⭐ ${S.points} Punkte</span></div>
   ${ringsHTML()}
-  <div class="hero"><img class="heroimg" src="img/m-${m.id}.jpg" alt="" onerror="this.remove()"><div class="m" style="color:rgba(255,255,255,.85)">Mission des Tages · ${sub.emoji} ${sub.long} · ${m.min} Min.</div>
+  <div class="hero"><div class="cv hi"><img src="${coverSrc(m)}" alt="" onerror="this.remove()"></div><div class="m" style="color:rgba(255,255,255,.85)">Mission des Tages · ${sub.emoji} ${sub.long} · ${m.min} Min.</div>
     <h3>${t.emoji} ${esc(m.title)}</h3><p>${esc(m.sub)}</p>
     <button class="btn" onclick="start('${m.id}')">${done ? 'Heute geschafft ✓ · nochmal' : 'Los geht’s'}</button></div>
   <h2>Noch mehr?</h2>
@@ -117,7 +128,7 @@ function home(p) {
   ${box || due ? `<button class="item" onclick="startBox()"><div class="dot" style="background:#ff453a33">🏁</div><div style="flex:1"><b>Boxenstopp</b><span class="m">${box ? box + ' Aufgaben zum Wiederholen' : ''}${box && due ? ' · ' : ''}${due ? due + (due === 1 ? ' Mission' : ' Missionen') + ' zum Auffrischen' : ''}</span></div></button>` : ''}
   <h2>Deine Fächer</h2>
   <div class="grid">${TAB_SUBJ.map(k => { const v = SUBJECTS[k], l = byS(k), d = l.filter(x => S.done[x.id]).length, g2 = l.filter(x => (S.stars[x.id] || 0) >= 2).length;
-    return `<button class="th" style="border-color:${v.color}55" onclick="S.subj='${k}';save();go('missions')"><div class="e">${v.emoji}</div><b>${v.name}</b>
+    return `<button class="th" style="border-color:${v.color}55" onclick="S.subj='${k}';save();go('missions')"><div class="thi"><img src="${coverFile(SUBJ_COVER[k])}" alt="" loading="lazy" onerror="this.remove()"><span>${v.emoji}</span></div><b>${v.name}</b>
     <span class="m">${d} von ${l.length} Missionen</span><div class="bar" style="margin-top:8px"><i style="width:${Math.max(3, 100 * g2 / l.length)}%;background:${v.color}"></i></div></button>`; }).join('')}</div>
   <h2>Das große Ziel</h2>
   <button class="item" onclick="go('garage')"><div class="dot" style="background:#ff453a33">🏆</div><div style="flex:1"><b>${esc(PROJECT.name)}</b><span class="m">${projectDone() ? 'Geschafft! Urkunde in der Garage' : projectPct() + ' % der Etappen geschafft'}</span><div class="bar" style="margin-top:8px"><i style="width:${Math.max(3, projectPct())}%;background:#ff453a"></i></div></div></button>
@@ -131,7 +142,7 @@ function missions() {
   const list = byS(S.subj); let last = '', out = '';
   list.forEach(m => { if (m.topic !== last) { out += `<h2>${esc(m.topic)}</h2>`; last = m.topic } out += mItem(m); });
   const s = SUBJECTS[S.subj];
-  return `<h1>${s.emoji} ${s.long}</h1><p class="m">${S.subj === 'technik' ? 'Über den Schulstoff hinaus: Motortechnik für Fortgeschrittene. Der Taschenrechner ist erlaubt.' : 'Klasse 6 · Sterne gibt es für Aufgaben, die du gleich beim ersten Versuch löst.'}</p>
+  return `${cover(coverFile(SUBJ_COVER[S.subj]), {cls: 'tall', title: s.emoji + ' ' + s.long})}<p class="m">${S.subj === 'technik' ? 'Über den Schulstoff hinaus: Motortechnik für Fortgeschrittene. Der Taschenrechner ist erlaubt.' : 'Klasse 6 · Sterne gibt es für Aufgaben, die du gleich beim ersten Versuch löst.'}</p>
   <div class="chips2 wrap">${TAB_SUBJ.map(k => `<button class="${S.subj === k ? 'on' : ''}" style="${S.subj === k ? 'border-color:' + SUBJECTS[k].color : ''}" onclick="S.subj='${k}';save();render()">${SUBJECTS[k].emoji} ${SUBJECTS[k].name}</button>`).join('')}</div>${out}`;
 }
 
@@ -200,9 +211,15 @@ function step() {
   if (run.i >= n) return finish();
   const head = `<div class="nav"><button class="back" onclick="if(confirm('Mission beenden?'))go('home')">✕</button><div class="steps">${run.steps.map((_, k) => `<i class="${k <= run.i ? 'on' : ''}"></i>`).join('')}</div></div>`;
   run.cur = {tries: 0, done: false};
-  a.innerHTML = head + STEP[s.type](s);
+  a.innerHTML = head + stepVis(s) + STEP[s.type](s);
   if (INIT[s.type]) INIT[s.type](s);
   window.scrollTo(0, 0);
+}
+function stepVis(s) {
+  const m = run.m, i = run.i; if (m.speech) return '';
+  if (s.type === 'wissen' && !s.svg) return cover(coverSrc(m, i), i === 0 && m.id !== 'box' ? {subj: m.subject, min: m.min} : {cls: 'sm'});
+  if ((s.type === 'quiz' || s.type === 'num') && !s.img && i % 3 === 1) return cover(coverSrc(m, i), {cls: 'sm'});
+  return '';
 }
 const nextBtn = (label = 'Weiter', dis = false) => `<button class="btn" id="nx" ${dis ? 'disabled' : ''} onclick="next()">${label}</button>`;
 const fb = (cls, html) => { const e = $('#fb'); if (e) e.innerHTML = `<div class="fb ${cls}">${html}</div>` };
@@ -440,7 +457,7 @@ function finish() {
   const unlocked = GARAGE.find(g => before < g.need && S.points >= g.need), mc = missCount();
   const praise = !run.tot ? 'Gut gemacht. Dranbleiben zählt.' : stars === 3 ? ['Stark! Das saß.', 'Sauber gearbeitet, das war fast fehlerfrei.', 'Das war Meisterarbeit.'][Math.floor(Math.random() * 3)] : stars === 2 ? 'Gut gemacht. Mit Übung wird es noch sicherer.' : 'Aus Fehlern lernt man: Die kniffligen Aufgaben üben wir im Boxenstopp.';
   if (stars >= 2 || rankUp || goalNow) { snd('win'); confetti() }
-  $('#app').innerHTML = `<div class="center" style="margin-top:34px"><div class="big">🏁</div><h1>${box ? 'Boxenstopp erledigt!' : 'Mission geschafft!'}</h1>
+  $('#app').innerHTML = `${cover(coverSrc(m), {cls: 'tall'})}<div class="center" style="margin-top:14px"><div class="big">🏁</div><h1>${box ? 'Boxenstopp erledigt!' : 'Mission geschafft!'}</h1>
     ${run.tot ? `<div class="stars big2">${starStr(stars)}</div><p class="m">${run.ok} von ${run.tot} Aufgaben gleich beim ersten Versuch richtig.</p>` : ''}
     <p class="m">Du hast ${pts} Punkte geholt${st > 1 ? ' und ' + st + ' Tage in Folge gelernt' : ''}.</p>
     <p style="font-weight:600">${praise}</p></div>
