@@ -1,7 +1,7 @@
 'use strict';
 const $ = s => document.querySelector(s);
 const KEY = 'wt-state-v1';
-const VERSION = '1.6';
+const VERSION = '1.6.2';
 let S;
 try { S = JSON.parse(localStorage.getItem(KEY)) } catch (e) {}
 S = Object.assign({points: 0, days: [], done: {}, stars: {}, miss: {}, log: [], ratings: [], theme: 'simson', subj: 'mathe', name: '', daily: {}, goalDate: '', sound: true, rev: {}}, S || {});
@@ -51,7 +51,7 @@ function plan() {
 const theme = id => THEMES[id];
 
 // ---- Titelbilder (Fotos als Ausschnitte, Sport als Zeichnung). Eigene Bilder: img/m-<id>.jpg und Id in MIMG eintragen
-const COVERS = {simson: ['simson-ki-s51', 'simson-1', 'simson-ki-schwalbe', 'simson-3', 'simson-4'], traktor: ['traktor-1', 'traktor-3', 'traktor-2', 'traktor-4'], hof: ['hof-1', 'hof-3', 'hof-2', 'hof-4'], tuning: ['tuning-1', 'tuning-3', 'tuning-2', 'tuning-4'], sport: ['sport-1', 'sport-2']};
+const COVERS = {simson: ['simson-ki-s51', 'simson-1', 'simson-ki-schwalbe', 'simson-ki-sr50', 'simson-3', 'simson-4'], traktor: ['traktor-1', 'traktor-3', 'traktor-2', 'traktor-4'], hof: ['hof-1', 'hof-3', 'hof-2', 'hof-4'], tuning: ['tuning-1', 'tuning-3', 'tuning-2', 'tuning-4'], sport: ['sport-1', 'sport-2']};
 const SUBJ_COVER = {mathe: 'tuning-2', deutsch: 'simson-1', englisch: 'traktor-4', nawi: 'hof-4', technik: 'tuning-3'};
 const MIMG = typeof MIMG_LIST !== 'undefined' ? MIMG_LIST : [];
 const hash = s => [...String(s)].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7);
@@ -182,7 +182,7 @@ function parents() {
   <div class="card"><b>Name in der App</b><input id="nm" value="${esc(S.name)}" placeholder="Vorname (optional)" style="width:100%;margin-top:8px;padding:12px;border-radius:12px;border:0;background:var(--card2);color:var(--t);font:inherit" onchange="S.name=this.value.trim().slice(0,20);save()"></div>
   <div class="card"><div class="row sp"><b>Töne</b><label style="display:flex;gap:8px;align-items:center"><input type="checkbox" ${S.sound ? 'checked' : ''} onchange="S.sound=this.checked;save()"> an</label></div><p class="m">Kurze Klänge bei richtigen Antworten und am Ende einer Mission.</p></div>
   <details class="card"><summary><b>Wie die App lernt (Lernprinzipien)</b></summary><p class="m">• <b style="color:var(--t)">Abrufen statt nur lesen:</b> Fast alles sind Fragen und Aufgaben. Aktives Erinnern festigt Wissen besser als bloßes Durchlesen.<br>• <b style="color:var(--t)">Verteiltes Wiederholen:</b> Der Boxenstopp bringt Fehler und ältere Missionen nach 3, 7, 14 und 30 Tagen zurück.<br>• <b style="color:var(--t)">Abwechslung:</b> Die Fächer wechseln täglich (Verschränken statt Blocklernen).<br>• <b style="color:var(--t)">Sofortiges Feedback:</b> Jede Antwort wird erklärt, nicht nur bewertet.<br>• <b style="color:var(--t)">Wachstum statt Fehlerangst:</b> Sterne zählen den ersten Versuch, aber Fehler führen zu Wiederholung, nicht zu Punktabzug.<br>• <b style="color:var(--t)">Faire Ziele:</b> Wochenziel 5 von 7 Tagen, damit ein freier Tag die Serie nicht zerstört.<br>• <b style="color:var(--t)">Eigener Antrieb:</b> Eigene Interessen (Simson, Traktor, Tuning) und das große Ziel geben Sinn, Punkte sind nur Beiwerk.</p></details>
-  <details class="card"><summary><b>Bildnachweis</b></summary>${CREDITS.map(c => `<p class="m"><b style="color:var(--t)">${esc(c.title)}</b><br>${esc(c.author)} · ${esc(c.license)} · <a style="color:#0a84ff" href="https://commons.wikimedia.org/wiki/File:${encodeURI(c.page)}" target="_blank" rel="noopener">Quelle</a></p>`).join('')}<p class="m">Fotos von Wikimedia Commons, in der Größe angepasst. Fotos vom Rasentraktor: eigene Aufnahmen. Die Zeichnungen sind selbst erstellt. Die Bilder der Garage (Simson S51, Schwalbe) wurden mit KI (ChatGPT) erzeugt und zeigen typische, aber keine echten Fahrzeuge.</p></details>
+  <details class="card"><summary><b>Bildnachweis</b></summary>${CREDITS.map(c => `<p class="m"><b style="color:var(--t)">${esc(c.title)}</b><br>${esc(c.author)} · ${esc(c.license)} · <a style="color:#0a84ff" href="https://commons.wikimedia.org/wiki/File:${encodeURI(c.page)}" target="_blank" rel="noopener">Quelle</a></p>`).join('')}<p class="m">Fotos von Wikimedia Commons, in der Größe angepasst. Fotos vom Rasentraktor: eigene Aufnahmen. Die Zeichnungen sind selbst erstellt. Die Bilder der Garage (Simson S51, SR50, Schwalbe) wurden mit KI (ChatGPT, Gemini) erzeugt und zeigen typische, aber keine echten Fahrzeuge.</p></details>
   <div class="card"><b>Version</b><p class="m">Lernwerkstatt, Version ${VERSION}. Missionen: ${MISSIONS.length}.</p></div>
   <div class="card"><b>Synchronisation</b><p class="m">Noch nicht aktiv. Der Fortschritt liegt nur auf diesem Gerät.</p></div>
   <button class="btn alt" onclick="if(confirm('Wirklich alle Fortschritte löschen?')){S.points=0;S.days=[];S.done={};S.stars={};S.miss={};S.log=[];S.ratings=[];S.daily={};S.goalDate='';save();render()}">Fortschritt zurücksetzen</button>`;

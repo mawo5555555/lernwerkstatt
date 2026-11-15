@@ -44,7 +44,7 @@ const GARAGE = [
   {id:'g2', name:'Rasentraktor',         need:80,   emoji:'🚜', img:'img/foto/rasen-front.jpg', text:'Fürs Mähen und Üben.'},
   {id:'g3', name:'Fortschritt ZT 300',   need:200,  emoji:'🚜', img:'img/foto/zt300-gelsdorf.jpg', text:'Der DDR-Klassiker auf dem Acker.'},
   {id:'g4', name:'Traktor mit Anhänger', need:400,  emoji:'🚛', img:'img/garage4.png', text:'Ernte einfahren.'},
-  {id:'g9', name:'Simson SR50',          need:550,  emoji:'🛵', svg:'sr50', img:'img/garage9.png', text:'Mit Verkleidung und Trittbrett.'},
+  {id:'g9', name:'Simson SR50',          need:550,  emoji:'🛵', img:'img/ki/sr50.jpg', text:'Mit Verkleidung und Trittbrett.'},
   {id:'g5', name:'Mähdrescher E 512',    need:700,  emoji:'🌾', img:'img/foto/e512-seite.jpg', text:'Großes Gerät für große Aufgaben.'},
   {id:'g6', name:'Simson Schwalbe',      need:1000, emoji:'🛵', img:'img/ki/schwalbe.jpg', text:'Der Klassiker für die Sammlung.'},
   {id:'g7', name:'Unimog',               need:1400, emoji:'🚛', img:'img/garage7.png', text:'Geht überall durch.'},
