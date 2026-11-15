@@ -148,7 +148,7 @@ const chug = () => { const v = VEH[G.id]; if (v) engCrank(v) };
 
 // ---- Garagen-Liste
 function garage() {
-  return `<h1>Garage</h1><p class="m">Tippe auf ein Fahrzeug: starten, Gas geben, tanken, waschen und Experte werden. Mit Punkten aus den Missionen schaltest du neue Fahrzeuge frei.</p>
+  return `<div class="row sp"><h1>Garage</h1><span class="chip">🪙 ${S.coins || 0}</span></div><p class="m">Tippe auf ein Fahrzeug: starten, Gas geben, tanken, waschen und Experte werden. Mit Punkten aus den Missionen schaltest du neue Fahrzeuge frei.</p>
   ${GARAGE.map(g => { const lock = S.points < g.need, st = lock ? null : gst(g.id);
     return `<div class="card gcard ${lock ? 'lock' : ''}" style="cursor:pointer" onclick="openVeh('${g.id}')"><div class="gimg">${gimg(g)}</div><div style="flex:1"><b>${esc(g.name)}</b>
     ${lock ? `<div class="m">🔒 noch ${g.need - S.points} Punkte</div><div class="bar" style="margin-top:6px"><i style="width:${Math.max(3, 100 * S.points / g.need)}%"></i></div>`
@@ -160,14 +160,14 @@ function openVeh(id) { clearTimers(); engStop(); G = {id, on: false, raf: 0, pan
 function vehView() {
   const g = GARAGE.find(x => x.id === G.id), v = VEH[g.id], lock = S.points < g.need;
   const head = `<div class="nav"><button class="back" onclick="go('garage')">‹</button><b>Garage</b></div>`;
-  const hero = `<div class="vhero${lock ? ' lock2' : ''}" id="vh" onclick="vBlip()"><img id="vimg" src="${g.img}" alt="${esc(g.name)}" onerror="this.remove()"><canvas id="dirt"></canvas><div class="vtit">${g.emoji} ${esc(g.name)}</div></div>`;
+  const hero = `<div class="vhero${lock ? ' lock2' : ''}" id="vh" onclick="vBlip()"><img id="vimg" src="${g.img}" alt="${esc(g.name)}" style="${!lock && gst(g.id).tune && gst(g.id).tune.hue ? `filter:hue-rotate(${gst(g.id).tune.hue}deg) saturate(1.15)` : ''}" onerror="this.remove()"><canvas id="dirt"></canvas><div class="vtit">${g.emoji} ${esc(g.name)}</div></div>`;
   if (lock) { const p = plan().main;
     return head + hero + `<div class="card center"><div class="big">🔒</div><b style="font-size:20px">Noch ${g.need - S.points} Punkte</b><div class="bar" style="margin:10px 0"><i style="width:${Math.max(3, 100 * S.points / g.need)}%"></i></div>
     <p class="m">Du hast ${S.points} von ${g.need} Punkten. Jede Mission bringt 10 bis 30 Punkte, fehlerfreie gibt es mit Bonus.</p></div>
     <div class="card"><b>Vorschau</b>${v.specs.slice(0, 3).map(s => `<div class="row sp spec"><span class="m">${esc(s[0])}</span><b>${esc(s[1])}</b></div>`).join('')}<p class="m">Den Rest erfährst du, wenn du es freigeschaltet hast.</p></div>
     <button class="btn" onclick="start('${p.id}')">Punkte holen: ${esc(p.title)}</button>`; }
   const st = gst(g.id), d = dirtOf(st);
-  const tiles = [['start', G.on ? '⏹' : '🔑', G.on ? 'Motor aus' : 'Motor starten'], ['race', '🏁', 'Beschleunigen'], ['fuel', '⛽', 'Tanken'], ['wash', '🧽', 'Waschen'], ['quiz', st.exp ? '⭐' : '❓', st.exp ? 'Experte' : 'Experten-Quiz'], ['shop', '🔧', 'Werkstatt' + (dueCount(v, st) ? ' <em class="badge">' + dueCount(v, st) + '</em>' : '')], ['specs', '📋', 'Steckbrief'], ...(v.spots ? [['parts', '🔍', 'Teile ansehen']] : [])];
+  const tiles = [['start', G.on ? '⏹' : '🔑', G.on ? 'Motor aus' : 'Motor starten'], ['race', '🏁', 'Beschleunigen'], ['fuel', '⛽', 'Tanken'], ['wash', '🧽', 'Waschen'], ['quiz', st.exp ? '⭐' : '❓', st.exp ? 'Experte' : 'Experten-Quiz'], ...(v.kind === '2t' ? [['tune', '🏎️', 'Tuning']] : []), ['shop', '🔧', 'Werkstatt' + (dueCount(v, st) ? ' <em class="badge">' + dueCount(v, st) + '</em>' : '')], ['specs', '📋', 'Steckbrief'], ...(v.spots ? [['parts', '🔍', 'Teile ansehen']] : [])];
   return head + hero + `<div class="vstat"><div><b>${st.km}</b><span>km</span></div><div><b>${Math.round(st.fuel)} %</b><span>Tank</span><div class="bar"><i style="width:${st.fuel}%;background:${st.fuel < 15 ? '#ff453a' : '#30d158'}"></i></div></div>
     <div><b>${d < .1 ? '✨' : d < .5 ? 'ok' : 'dreckig'}</b><span>Sauberkeit</span><div class="bar"><i style="width:${100 - d * 100}%;background:#0a84ff"></i></div></div><div><b>${st.best ? de(st.best, 1) + ' s' : '–'}</b><span>Bestzeit</span></div></div>
     <div class="vtiles">${tiles.map(t => `<button class="vt${G.panel === t[0] ? ' on' : ''}" id="vt_${t[0]}" onclick="vPanel('${t[0]}')"><span>${t[1]}</span>${t[2]}</button>`).join('')}</div>
@@ -178,7 +178,7 @@ function vPanel(k, keep) {
   const g = GARAGE.find(x => x.id === G.id), v = VEH[g.id], st = gst(g.id);
   if (G.raf) { clearInterval(G.raf); G.raf = 0; if (G.on) engRpm(v.race.idle) }
   if (k === 'start' && G.on && !keep) { engStop(); $('#vh').classList.remove('run'); toast('Motor aus. 🔇'); G.panel = null; vRefresh(); return }
-  G.panel = k; document.querySelectorAll('.vt').forEach(b => b.classList.toggle('on', b.id === 'vt_' + k));
+  G.job = null; G.panel = k; document.querySelectorAll('.vt').forEach(b => b.classList.toggle('on', b.id === 'vt_' + k));
   const p = $('#vp'); p.innerHTML = '<div class="card vpc">' + VP[k](g, v, st) + '</div>'; if (VPI[k]) VPI[k](g, v, st);
   if (!keep) (k === 'wash' ? $('#vh') : p).scrollIntoView({behavior: 'smooth', block: k === 'wash' ? 'start' : 'nearest'});
 }
@@ -194,7 +194,7 @@ const VP = {
   race(g, v, st) {
     if (!G.on) return `<b>🏁 Beschleunigen</b><p class="m">Der Motor ist aus. Erst starten, dann geht’s los.</p><button class="btn" onclick="vPanel('start')">🔑 Zum Starten</button>`;
     if (st.fuel < 12) return `<b>⛽ Fast leer!</b><p class="m">Für eine Runde brauchst du mindestens 12 % im Tank.</p><button class="btn" onclick="vPanel('fuel')">Zum Tanken</button>`;
-    const r = v.race;
+    const r = raceOf(v);
     return `<b>🏁 Beschleunigen bis ${r.vmax} km/h</b><p class="m">Halte <b>Gas</b> gedrückt. Schalte hoch, wenn die Nadel im <b style="color:#30d158">grünen Bereich</b> ist. Bleib nicht zu lange im <b style="color:#ff453a">roten Bereich</b>!</p>
     <div class="race"><svg viewBox="0 0 200 120" width="100%" style="max-width:300px;display:block;margin:0 auto">${tachoArcs(r)}<line id="ndl" x1="100" y1="100" x2="100" y2="22" stroke="#fff" stroke-width="4" stroke-linecap="round" style="transform-origin:100px 100px;transform:rotate(-90deg)"/><circle cx="100" cy="100" r="7" fill="#fff"/></svg>
     <div class="row sp" style="margin-top:4px"><div><span class="m">Gang</span><br><b id="gr" style="font-size:28px">1</b><span class="m">/${r.g}</span></div><div class="center"><b id="spd" style="font-size:44px">0</b><br><span class="m">km/h</span></div><div style="text-align:right"><span class="m">Zeit</span><br><b id="tm" style="font-size:28px">0,0</b><span class="m"> s</span></div></div>
@@ -266,24 +266,24 @@ function tachoArcs(r) {
   return arc(0, max, '#3a3a3c') + arc(r.win[0], r.win[1], '#30d158') + arc(r.red, max, '#ff453a') + ticks + `<text x="100" y="118" text-anchor="middle" fill="#8e8e93" font-size="9">Drehzahl</text>`;
 }
 function vRaceGo(v) {
-  const r = v.race, vg = k => r.vmax * Math.pow(k / r.g, .75);
+  const r = raceOf(v), vg = k => r.vmax * Math.pow(k / r.g, .75);
   G.run = {rpm: r.idle, k: 1, t: 0, over: 0, perfect: 0, last: performance.now(), done: false};
   const msg = (t, c = '') => { const e = $('#rmsg'); if (e) { e.textContent = t; e.style.color = c } };
   const loop = () => {
     const now = performance.now(), R = G.run; if (!R || R.done || !$('#ndl')) { clearInterval(G.raf); G.raf = 0; return } const dt = Math.min(.2, (now - R.last) / 1000); R.last = now; R.t += dt;
-    const acc = (r.red - r.idle) / (1 + R.k * .85);
+    const acc = (r.red - r.idle) / (1 + R.k * .85) * (r.acc || 1);
     R.rpm = G.gas ? Math.min(r.red * 1.08, R.rpm + acc * dt) : Math.max(r.idle, R.rpm - (r.red - r.idle) * .9 * dt);
     if (R.rpm > r.red) { R.over += dt; msg('⚠️ Roter Bereich! Schalten oder Gas weg!', '#ff453a') } else R.over = Math.max(0, R.over - dt);
     const spd = Math.min(r.vmax, R.rpm / r.red * vg(R.k));
     $('#ndl').style.transform = `rotate(${-90 + 180 * Math.min(1, R.rpm / (r.red * 1.1))}deg)`; $('#spd').textContent = Math.round(spd); $('#tm').textContent = de(R.t, 1); $('#gr').textContent = R.k; engRpm(R.rpm, G.gas ? 1 : 0);
-    if (R.over > 1.6) { clearInterval(G.raf); G.raf = 0; R.done = true; G.run = null; engRpm(r.idle); msg('');
+    if (R.over > (r.lean ? .8 : 1.6)) { clearInterval(G.raf); G.raf = 0; R.done = true; G.run = null; engRpm(r.idle); msg('');
       $('#rmsg').innerHTML = `<div class="fb bad" style="text-align:left">💥 Zu lange im roten Bereich: ${v.kind === '2t' ? 'Kolbenklemmer' : 'Motorschaden'}-Gefahr! Der Motor wurde zum Schutz abgeregelt. Nächstes Mal früher schalten.</div><button class="btn alt" onclick="vPanel('race')">Nochmal</button>`; snd('bad'); return }
     if (R.k === r.g && spd >= r.vmax - .01) { clearInterval(G.raf); G.raf = 0; return vRaceEnd(v, R) }
   };
   G.raf = setInterval(loop, 33); G.vg = vg; G.msg = msg;
 }
 function vShift() {
-  const v = VEH[G.id], r = v.race, R = G.run; if (!R || R.done) { if (G.on && !R) G.msg && G.msg('Erst Gas geben!'); return }
+  const v = VEH[G.id], r = raceOf(v), R = G.run; if (!R || R.done) { if (G.on && !R) G.msg && G.msg('Erst Gas geben!'); return }
   if (R.k >= r.g) { G.msg('Das ist schon der höchste Gang. Gas halten!'); return }
   const rpm = R.rpm; R.rpm = Math.max(r.idle, rpm * G.vg(R.k) / G.vg(R.k + 1)); R.k++; tone(260, .05, 0, 'square', .04);
   if (rpm < r.win[0]) G.msg('Zu früh geschaltet, der Motor quält sich.', '#ff9f0a');
@@ -294,7 +294,7 @@ function vRaceEnd(v, R) {
   R.done = true; G.run = null; const g = GARAGE.find(x => x.id === G.id), st = gst(g.id), rec = !st.best || R.t < st.best, km = 2 + Math.floor(Math.random() * 5);
   if (rec) st.best = Math.round(R.t * 10) / 10; st.km += km; st.fuel = Math.max(0, st.fuel - 12); st.dirt = Math.min(1, st.dirt + .2); save(); engRpm(v.race.idle);
   if (rec) { confetti(); snd('win') } else snd('ok'); ride(g.emoji);
-  $('#rmsg').innerHTML = `<div class="card center" style="background:var(--card2);margin:10px 0 0"><div class="big">${rec ? '🏆' : '🏁'}</div><b style="font-size:20px">${v.race.vmax} km/h in ${de(R.t, 1)} Sekunden</b>
+  $('#rmsg').innerHTML = `<div class="card center" style="background:var(--card2);margin:10px 0 0"><div class="big">${rec ? '🏆' : '🏁'}</div><b style="font-size:20px">${raceOf(v).vmax} km/h in ${de(R.t, 1)} Sekunden</b>
     <p class="m">${rec ? 'Neue Bestzeit!' : 'Bestzeit: ' + de(st.best, 1) + ' s'} · ${R.perfect} von ${v.race.g - 1} Schaltvorgängen perfekt · ${km} km Ausfahrt</p></div><button class="btn" onclick="vPanel('race')">Nochmal</button>`;
   const sp = document.querySelector('.vstat'); if (sp) sp.outerHTML = (new DOMParser().parseFromString(vehView(), 'text/html').querySelector('.vstat') || sp).outerHTML;
 }
@@ -349,7 +349,7 @@ const cnt = (x, W, H) => { const a = x.getImageData(0, 0, W, H).data; let c = 0;
 // ---- Experten-Quiz
 function vQuiz(v) {
   const g = GARAGE.find(x => x.id === G.id), st = gst(g.id), q = v.quiz[G.q], box = $('#vq'); if (!box) return;
-  if (!q) { const pass = G.qok >= 3, first = pass && !st.exp; if (first) { st.exp = true; S.points += 5; save(); confetti(); snd('win') }
+  if (!q) { const pass = G.qok >= 3, first = pass && !st.exp; if (first) { st.exp = true; S.points += 5; S.coins = (S.coins || 0) + 5; save(); confetti(); snd('win') }
     box.innerHTML = `<div class="center"><div class="big">${pass ? '⭐' : '📚'}</div><b style="font-size:20px">${G.qok} von ${v.quiz.length} richtig</b><p class="m">${first ? 'Experten-Abzeichen verdient! +5 Punkte.' : pass ? 'Stark, du bist Experte.' : 'Schau in den Steckbrief und versuch es nochmal.'}</p></div><button class="btn alt" onclick="vPanel('quiz')">Nochmal</button>`; return }
   G.qa = false; const ord = shuffle(q.opts.map((_, i) => i));
   box.innerHTML = `<p class="m">Frage ${G.q + 1} von ${v.quiz.length}</p><div class="q" style="font-size:19px">${esc(q.q)}</div>${ord.map(i => `<button class="opt" onclick="vqa(this,${i})">${esc(q.opts[i])}</button>`).join('')}<div id="vqf"></div>`;
@@ -371,16 +371,17 @@ const JOBS = {
   kerze: {name: 'Zündkerze wechseln', icon: '🔌', kinds: ['2t', '4t'], every: 40, steps: v => [
     {t: 'mc', q: 'Der Motor ist abgekühlt. Was machst du zuerst?', o: ['Kerzenstecker abziehen', 'Kerze mit dem Hammer lockern', 'Tank abbauen', 'Motor starten'], why: 'Erst den Stecker ab, sonst kommt man nicht an die Kerze.'},
     {t: 'mc', q: 'Welches Werkzeug dreht die Zündkerze heraus?', o: ['🔧 Zündkerzenschlüssel', '🪛 Schlitzschraubendreher', '🗜️ Rohrzange', '🔨 Hammer'], why: 'Der Kerzenschlüssel umfasst die Kerze und rutscht nicht ab.'},
-    {t: 'turn', q: 'Dreh die alte Kerze heraus. Wische im Kreis über den Schlüssel.', dir: -1, turns: 2, ico: '🔧'},
+    {t: 'turn', q: 'Dreh die alte Kerze heraus.', dir: -1, turns: 2, sw: 21},
     {t: 'mc', q: 'Die alte Kerze ist schwarz und verrußt. Was heißt das?', o: ['Das Gemisch war zu fett.', 'Alles perfekt.', 'Das Gemisch war zu mager.', 'Der Reifen ist platt.'], why: 'Rehbraun wäre ideal. Schwarz bedeutet zu viel Kraftstoff oder Öl.'},
     {t: 'slide', q: 'Stelle den Elektrodenabstand der neuen Kerze ein.', min: .2, max: 1.2, step: .05, lo: v.kind === '2t' ? .4 : .6, hi: v.kind === '2t' ? .6 : .8, unit: ' mm', why: v.kind === '2t' ? 'Bei der Simson etwa 0,4 bis 0,6 mm. Steht genau in der Betriebsanleitung.' : 'Bei vielen Rasentraktoren etwa 0,6 bis 0,8 mm. Steht genau in der Anleitung.'},
-    {t: 'turn', q: 'Neue Kerze erst von Hand eindrehen, dann festziehen.', dir: 1, turns: 1.5, ico: '🔧'},
+    {t: 'turn', q: 'Neue Kerze erst von Hand eindrehen, dann mit dem Kerzenschlüssel festziehen (Beispielwert 25 Nm).', dir: 1, turns: 1.5, sw: 21, tq: 25},
     {t: 'mc', q: 'Was fehlt noch?', o: ['Kerzenstecker wieder aufstecken', 'Tank leeren', 'Lenker abschrauben', 'Reifen wechseln'], why: 'Ohne Stecker kein Funke.'}]},
   kette: {name: 'Kette spannen und ölen', icon: '⛓️', kinds: ['2t'], every: 30, steps: () => [
     {t: 'mc', q: 'Wie soll eine Mopedkette gespannt sein?', o: ['mit etwas Durchhang, nicht straff', 'ganz straff wie eine Saite', 'so locker, dass sie schleift', 'ist egal'], why: 'Zu straff zerstört Lager und Kette, zu locker springt sie ab.'},
-    {t: 'turn', q: 'Löse die Achsmutter am Hinterrad.', dir: -1, turns: 1, ico: '🔩'},
+    {t: 'mc', q: 'Du misst die Achsmutter mit dem Messschieber: 17 mm über die Flächen. Welchen Schlüssel nimmst du?', o: ['Schlüsselweite 17', 'Schlüsselweite 13', 'Schlüsselweite 19', 'Schlüsselweite 10'], why: 'Die Schlüsselweite (SW) ist der Abstand zwischen zwei gegenüberliegenden Flächen der Mutter.'},
+    {t: 'turn', q: 'Löse die Achsmutter am Hinterrad.', dir: -1, turns: 1, sw: 17},
     {t: 'slide', q: 'Stelle die Kettenspanner ein, bis der Durchhang passt.', min: 0, max: 100, step: 1, lo: 42, hi: 58, chain: true, why: 'Etwas Spiel muss bleiben, weil die Kette beim Einfedern länger gezogen wird.'},
-    {t: 'turn', q: 'Achsmutter wieder festziehen.', dir: 1, turns: 1, ico: '🔩'},
+    {t: 'turn', q: 'Achsmutter wieder festziehen (Beispielwert 40 Nm).', dir: 1, turns: 1, sw: 17, tq: 40},
     {t: 'hold', q: 'Halte gedrückt: Das Hinterrad dreht sich und du sprühst Kettenspray auf die Innenseite der Kette.', ms: 2600, ico: '🧴', btn: 'Sprühen'},
     {t: 'mc', q: 'Warum wischt man zu viel Kettenspray ab?', o: ['Sonst klebt Dreck dran und es spritzt herum.', 'Weil es sonst brennt.', 'Damit die Kette rostet.', 'Das macht man nicht.'], why: ''}]},
   oel: {name: 'Ölstand prüfen', icon: '🛢️', kinds: ['4t', 'd'], every: 40, steps: () => [
@@ -388,11 +389,11 @@ const JOBS = {
     {t: 'hold', q: 'Ziehe den Messstab heraus und wische ihn sauber.', ms: 1200, ico: '🧻', btn: 'Abwischen'},
     {t: 'dip'}]},
   luft: {name: 'Luftfilter reinigen', icon: '🌬️', kinds: ['2t', '4t', 'd'], every: 50, steps: () => [
-    {t: 'mc', q: 'Womit öffnest du den Luftfilterkasten?', o: ['🪛 Schraubendreher', '🔨 Hammer', '✂️ Schere', '🧲 Magnet'], why: ''},
-    {t: 'turn', q: 'Löse die Schraube am Deckel.', dir: -1, turns: 1.5, ico: '🪛'},
+    {t: 'mc', q: 'Womit öffnest du den Luftfilterkasten?', o: ['🔧 Ringschlüssel SW 10', '🔨 Hammer', '✂️ Schere', '🧲 Magnet'], why: 'Die Deckelschraube hat einen Sechskant mit Schlüsselweite 10.'},
+    {t: 'turn', q: 'Löse die Schraube am Deckel.', dir: -1, turns: 1.5, sw: 10},
     {t: 'hold', q: 'Klopfe den Filter aus und blase ihn von innen nach außen mit Druckluft durch.', ms: 2000, ico: '💨', btn: 'Ausblasen'},
     {t: 'mc', q: 'Warum ist ein sauberer Luftfilter wichtig?', o: ['Der Motor bekommt genug saubere Luft.', 'Dann passt mehr in den Tank.', 'Für eine lautere Hupe.', 'Damit die Reifen halten.'], why: 'Ein verstopfter Filter macht das Gemisch zu fett, der Motor verliert Kraft.'},
-    {t: 'turn', q: 'Deckel wieder festschrauben.', dir: 1, turns: 1.5, ico: '🪛'}]},
+    {t: 'turn', q: 'Deckel wieder festschrauben, nur handfest.', dir: 1, turns: 1.5, sw: 10, tq: false}]},
   reifen: {name: 'Reifendruck prüfen', icon: '🛞', kinds: ['4t', 'd'], every: 60, steps: v => [
     {t: 'mc', q: 'Wo findest du den richtigen Reifendruck?', o: ['in der Betriebsanleitung', 'auf dem Nummernschild', 'im Tankdeckel', 'auf dem Sitz'], why: ''},
     {t: 'fill', q: `Pumpe den Reifen auf. In diesem Beispiel soll er ${v.kind === 'd' ? '1,6' : '1,0'} bar haben.`, max: v.kind === 'd' ? 2.4 : 1.6, lo: v.kind === 'd' ? 1.55 : .95, hi: v.kind === 'd' ? 1.65 : 1.05, start: v.kind === 'd' ? 1.1 : .6, unit: ' bar', ico: '🛞', btn: 'Pumpen'},
@@ -407,7 +408,7 @@ VP.shop = (g, v, st) => `<b>🔧 Werkstatt</b><p class="m">Fahrzeuge brauchen Pf
 
 function jStart(k) { const v = VEH[G.id]; G.job = {k, steps: JOBS[k].steps(v), i: 0, mist: 0}; jStep() }
 function jStep() {
-  const J = G.job, s = J.steps[J.i], box = $('#vp .vpc'); if (!box) return; const j = JOBS[J.k];
+  const J = G.job, s = J.steps[J.i], box = $('#vp .vpc'); if (!box) return; const j = JOBS[J.k] || {icon: '', name: J.title};
   const head = `<div class="row sp"><b>${j.icon} ${j.name}</b><span class="m">${J.i + 1}/${J.steps.length}</span></div><div class="steps" style="margin:8px 0 12px">${J.steps.map((_, i) => `<i class="${i <= J.i ? 'on' : ''}"></i>`).join('')}</div>`;
   if (!s) return jDone();
   box.innerHTML = head + (JSTEP[s.t](s) || '') + '<div id="jf"></div>'; if (JINIT[s.t]) JINIT[s.t](s);
@@ -415,13 +416,23 @@ function jStep() {
 const jNext = (d = 600) => setTimeout(() => { if (!G.job) return; G.job.i++; jStep() }, d);
 const jfb = (c, h) => { const e = $('#jf'); if (e) e.innerHTML = `<div class="fb ${c}">${h}</div>` };
 function jDone() {
-  const st = gst(G.id), J = G.job; st.svc = st.svc || {}; st.svc[J.k] = st.km; S.points += 2; save(); snd('win'); confetti(); G.job = null;
-  $('#vp .vpc').innerHTML = `<div class="center"><div class="big">🔧✅</div><b style="font-size:20px">Auftrag erledigt!</b><p class="m">${esc(JOBS[J.k].name)}${J.mist ? ' · ' + J.mist + ' Fehlgriffe' : ' · fehlerfrei'} · +2 Punkte</p></div><button class="btn alt" onclick="vRefresh();vPanel('shop')">Zurück zur Werkstatt</button>`;
+  const st = gst(G.id), J = G.job; G.job = null; snd('win'); confetti();
+  if (J.after) { J.after(); save(); vRefresh(); $('#vp .vpc').insertAdjacentHTML('afterbegin', `<div class="fb good"><b>${esc(J.title)}: fertig!</b>${J.mist ? ' ' + J.mist + ' Fehlgriffe.' : ' Fehlerfrei geschraubt.'}</div>`); return }
+  st.svc = st.svc || {}; st.svc[J.k] = st.km; S.points += 2; S.coins = (S.coins || 0) + 2; save();
+  $('#vp .vpc').innerHTML = `<div class="center"><div class="big">🔧✅</div><b style="font-size:20px">Auftrag erledigt!</b><p class="m">${esc(JOBS[J.k].name)}${J.mist ? ' · ' + J.mist + ' Fehlgriffe' : ' · fehlerfrei'} · +2 Punkte · +2 🪙</p></div><button class="btn alt" onclick="vRefresh();vPanel('shop')">Zurück zur Werkstatt</button>`;
 }
 const JSTEP = {
   mc(s) { s.ord = shuffle(s.o.map((_, i) => i)); return `<div class="q" style="font-size:19px">${esc(s.q)}</div>${s.ord.map(i => `<button class="opt" onclick="jmc(this,${i})">${esc(s.o[i])}</button>`).join('')}` },
-  turn(s) { return `<div class="q" style="font-size:19px">${esc(s.q)}</div><p class="m">${s.dir < 0 ? '↺ Linksherum: lösen' : '↻ Rechtsherum: festziehen'} · ${de(s.turns, 1)} Umdrehungen</p>
-    <div class="turn" id="tw"><div class="tring"><i id="tp"></i></div><div class="tico" id="ti">${s.ico}</div><div class="tarrow">${s.dir < 0 ? '↺' : '↻'}</div></div><div class="bar"><i id="tb" style="width:0"></i></div>` },
+  turn(s) { const tq = s.dir > 0 && s.tq !== false; s.T = s.tq || 25; const hex = [...Array(6)].map((_, k) => { const a = Math.PI / 3 * k + Math.PI / 6; return (28 * Math.cos(a)).toFixed(1) + ',' + (28 * Math.sin(a)).toFixed(1) }).join(' ');
+    return `<div class="q" style="font-size:19px">${esc(s.q)}</div><p class="m">${s.dir < 0 ? '↺ <b>Linksherum lösen</b>' : '↻ <b>Rechtsherum festziehen</b>'}: Fass den Schlüssel am Griff und zieh ihn im Kreis um die Mutter. Zurückziehen geht ohne Drehen, das ist die Ratsche.${tq ? ` Zum Schluss mit Gefühl auf <b>${s.T} Nm</b> anziehen und dann loslassen.` : ''}</p>
+    <div class="turn2"><div class="tw" id="tw"><svg viewBox="-120 -120 240 240" width="100%" style="display:block">
+      <defs><radialGradient id="mtl" cx="38%" cy="32%"><stop offset="0" stop-color="#c8c8cd"/><stop offset="1" stop-color="#55555b"/></radialGradient><linearGradient id="stl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e5e5ea"/><stop offset=".55" stop-color="#8e8e93"/><stop offset="1" stop-color="#b8b8bd"/></linearGradient></defs>
+      <circle r="114" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="2" stroke-dasharray="5 7"/>
+      <rect x="-74" y="-74" width="148" height="148" rx="22" fill="#3a3a3e" stroke="#4a4a50"/><circle cx="-56" cy="-56" r="4" fill="#26262a"/><circle cx="56" cy="56" r="4" fill="#26262a"/><circle r="40" fill="#2a2a2e"/>
+      <g id="nut"><polygon points="${hex}" fill="url(#mtl)" stroke="#1c1c1e" stroke-width="2"/><circle r="15" fill="#4a4a50"/><circle r="11" fill="#9a9aa0"/><path d="M-11 0 H11 M0 -11 V11" stroke="#6a6a70" stroke-width="2"/></g>
+      <g id="wr"><rect x="30" y="-12" width="88" height="24" rx="12" fill="url(#stl)" stroke="#6a6a70"/><circle r="35" fill="none" stroke="url(#stl)" stroke-width="12"/><circle r="35" fill="none" stroke="#6a6a70" stroke-width="1"/><text x="76" y="4.5" font-size="12" font-weight="700" text-anchor="middle" fill="#3a3a3c">SW ${s.sw || 13}</text><circle cx="108" cy="0" r="7" fill="var(--ac)" opacity=".9"/></g>
+    </svg></div>${tq ? `<div class="tq"><div class="tqb"><em style="bottom:${100 * .88 / 1.45}%;height:${100 * .24 / 1.45}%"></em><i id="tqi"></i></div><b id="tqv">0 Nm</b><span class="m">Drehmoment</span></div>` : ''}</div>
+    <div class="row sp m"><span>${s.dir < 0 ? 'Gewinde raus' : 'Gewinde rein'}</span><span id="tpct">0 %</span></div><div class="bar"><i id="tb" style="width:0"></i></div>` },
   slide(s) { return `<div class="q" style="font-size:19px">${esc(s.q)}</div>${s.chain ? '<svg viewBox="0 0 300 90" width="100%" id="chs"></svg>' : `<div class="center"><b id="sv" style="font-size:34px"></b></div>`}
     <div class="nl" style="margin:10px 0"><div class="nlr" style="display:block;left:${nlp((s.lo - s.min) / (s.max - s.min))};width:calc((100% - 26px) * ${(s.hi - s.lo) / (s.max - s.min)})"></div><input type="range" id="js" min="${s.min}" max="${s.max}" step="${s.step}" value="${s.chain ? 90 : s.min}"></div>
     ${s.chain ? '<div class="row sp m"><span>zu locker</span><span>zu straff</span></div>' : ''}<button class="btn" onclick="jslide()">Passt so</button>` },
@@ -435,15 +446,31 @@ const JSTEP = {
       ${shuffle(['ok', 'low', 'high']).map(k => `<button class="opt" onclick="jdip(this,'${k}')">${{ok: 'Zwischen MIN und MAX: alles gut', low: 'Unter MIN: Öl nachfüllen', high: 'Über MAX: zu viel Öl'}[k]}</button>`).join('')}` }
 };
 const JINIT = {
-  turn(s) { const w = $('#tw'); let last = null, sum = 0, q = 0; const need = s.turns * 2 * Math.PI;
-    const ang = e => { const b = w.getBoundingClientRect(); return Math.atan2(e.clientY - b.top - b.height / 2, e.clientX - b.left - b.width / 2) };
-    w.onpointerdown = e => { w.setPointerCapture(e.pointerId); last = ang(e) };
-    w.onpointermove = e => { if (last === null || !G.job) return; const a = ang(e); let d = a - last; if (d > Math.PI) d -= 2 * Math.PI; if (d < -Math.PI) d += 2 * Math.PI; last = a; sum += d;
-      const prog = sum * s.dir; $('#ti').style.transform = `rotate(${sum}rad)`; $('#tb').style.width = Math.max(0, Math.min(100, 100 * prog / need)) + '%';
-      if (prog < -1.6) { sum = 0; G.job.mist++; jfb('bad', s.dir < 0 ? 'Falsche Richtung! Linksherum lösen, rechtsherum festziehen.' : 'Falsche Richtung! Zum Festziehen rechtsherum drehen.'); snd('bad') }
-      const nq = Math.floor(prog / (Math.PI / 2)); if (nq > q) { q = nq; tone(1400, .02, 0, 'square', .03); tone(900, .02, .03, 'square', .02) }
-      if (prog >= need) { w.onpointermove = null; last = null; jfb('good', s.dir < 0 ? 'Gelöst! 👍' : 'Fest! Aber nicht überdrehen: nach fest kommt ab.'); snd('ok'); jNext(900) } };
-    w.onpointerup = w.onpointercancel = () => last = null },
+  turn(s) { const w = $('#tw'), svg = w.querySelector('svg'), need = s.turns * 2 * Math.PI, tq = s.dir > 0 && s.tq !== false, T = s.T, mx = T * 1.45;
+    let last = null, sum = 0, q = 0, brk = s.dir > 0 ? 9 : 0, torque = 0, wrong = 0, free = 0, done = false, wa = 0;
+    const ang = e => { const b = svg.getBoundingClientRect(); return Math.atan2(e.clientY - b.top - b.height / 2, e.clientX - b.left - b.width / 2) };
+    const draw = () => { const f = Math.min(1, Math.max(0, sum * s.dir) / need), lift = s.dir < 0 ? f : 1 - f;
+      $('#nut').setAttribute('transform', `rotate(${(sum * 180 / Math.PI).toFixed(1)}) scale(${(1 + .16 * lift).toFixed(3)})`); $('#wr').setAttribute('transform', `rotate(${(wa * 180 / Math.PI).toFixed(1)})`);
+      $('#tb').style.width = f * 100 + '%'; $('#tpct').textContent = Math.round(f * 100) + ' %'; if (tq) { $('#tqi').style.height = Math.min(100, 100 * torque / mx) + '%'; $('#tqi').style.background = torque > T * 1.12 ? '#ff453a' : torque >= T * .88 ? '#30d158' : '#ffd60a'; $('#tqv').textContent = Math.round(torque) + ' Nm' } };
+    const finish = t => { done = true; w.onpointermove = null; jfb('good', t); snd('ok'); jNext(1100) };
+    w.onpointerdown = e => { if (done) return; w.setPointerCapture(e.pointerId); last = ang(e) };
+    w.onpointermove = e => { if (last === null || done || !G.job) return; const a = ang(e); let d = a - last; if (d > Math.PI) d -= 2 * Math.PI; if (d < -Math.PI) d += 2 * Math.PI; last = a; wa += d;
+      if (d * s.dir <= 0) { free += Math.abs(d); wrong += Math.abs(d); if (free > .35) { free = 0; tone(2600, .012, 0, 'square', .015) }
+        if (wrong > 3) { wrong = 0; G.job.mist++; jfb('bad', s.dir < 0 ? 'Du drehst nur die Ratsche zurück. Zum <b>Lösen linksherum</b> ziehen!' : 'Du drehst nur die Ratsche zurück. Zum <b>Festziehen rechtsherum</b> ziehen!'); snd('bad') } draw(); return }
+      wrong = Math.max(0, wrong - Math.abs(d) * 2);
+      let eff = d;
+      if (brk < .9) { brk += Math.abs(d); eff = d * .12; if (Math.random() < .3) tone(90, .03, 0, 'triangle', .04);
+        if (brk >= .9) { tone(1800, .03, 0, 'square', .09); tone(160, .12, .02, 'sawtooth', .07); jfb('', '💥 <b>Knack!</b> Die Mutter hat sich gelöst. Jetzt geht es leichter.') } else if (brk > .3 && !$('#jf').textContent) jfb('', 'Die sitzt fest! Kräftig weiterziehen …') }
+      const prog = sum * s.dir;
+      if (tq && prog >= need) { eff = d * .08; torque += Math.abs(d) * T / 1.6; tone(300 + torque * 12, .03, 0, 'sawtooth', .012);
+        if (torque > mx) { G.job.mist++; torque = 0; sum = need * .5 * s.dir; snd('bad'); jfb('bad', '💥 <b>Überdreht!</b> Das Gewinde ist ausgerissen. Zum Glück nur im Spiel: Neue Mutter drauf und nochmal, diesmal mit Gefühl.') } }
+      sum += eff; const nq = Math.floor(Math.max(0, sum * s.dir) / (Math.PI / 2)); if (nq > q) { q = nq; tone(1300, .015, 0, 'square', .03); tone(700, .02, .025, 'square', .02) }
+      draw(); if (!tq && sum * s.dir >= need) finish(s.dir < 0 ? 'Raus! Mutter abgenommen. 👍' : 'Fest! 👍') };
+    w.onpointerup = w.onpointercancel = () => { last = null; if (done || !tq || torque <= 0) return;
+      if (torque >= T * .88 && torque <= T * 1.12) finish(`<b>${Math.round(torque)} Nm, perfekt angezogen!</b> Nicht zu locker, nicht zu fest.`);
+      else if (torque < T * .88) jfb('', `Erst ${Math.round(torque)} Nm. Noch etwas fester, bis ${T} Nm.`);
+      else { G.job.mist++; jfb('bad', `${Math.round(torque)} Nm sind zu fest! Das kann das Gewinde beschädigen. Etwas lösen und neu anziehen.`); torque = T * .5; draw() } };
+    draw() },
   slide(s) { const r = $('#js'), upd = () => { const v = +r.value; if (s.chain) { const sag = 4 + (100 - v) * .42; $('#chs').innerHTML = `<circle cx="45" cy="45" r="16" fill="none" stroke="#8e8e93" stroke-width="4"/><circle cx="255" cy="45" r="30" fill="none" stroke="#8e8e93" stroke-width="4"/><path d="M45 29 Q150 ${29 - (v > 95 ? 0 : 2)} 255 15" fill="none" stroke="#d1d1d6" stroke-width="5" stroke-dasharray="5 3"/><path d="M45 61 Q150 ${61 + sag} 255 75" fill="none" stroke="#d1d1d6" stroke-width="5" stroke-dasharray="5 3"/>` } else $('#sv').textContent = de(v, 2) + s.unit }; r.oninput = upd; upd() },
   hold(s) { holdBtn(s, p => { $('#hb2').style.width = p + '%'; if (p % 10 < 4) tone(s.ico === '🧴' ? 2500 + Math.random() * 800 : 300, .04, 0, s.ico === '🧴' ? 'sawtooth' : 'triangle', .012) }, () => { jfb('good', 'Erledigt!'); jNext(700) }, s.ms) },
   fill(s) { const b = $('#jh'); let iv = null; const stop = () => { if (!iv) return; clearInterval(iv); iv = null;
@@ -498,4 +525,4 @@ function vCheck(c) {
 }
 
 // ---- Testmodus nur lokal (nicht auf GitHub Pages): ?test schaltet alles frei und macht Wartung fällig
-if (/[?&]test\b/.test(location.search) && !/github\.io$/.test(location.hostname)) { S.points = Math.max(S.points, 2500); GARAGE.forEach(g => { const st = gst(g.id); st.km = Math.max(st.km, 60) }); save(); setTimeout(() => toast('🧪 Testmodus: alles freigeschaltet'), 300) }
+if (/[?&]test\b/.test(location.search) && !/github\.io$/.test(location.hostname)) { S.points = Math.max(S.points, 2500); S.coins = Math.max(S.coins || 0, 1500); GARAGE.forEach(g => { const st = gst(g.id); st.km = Math.max(st.km, 60) }); save(); setTimeout(() => toast('🧪 Testmodus: alles freigeschaltet'), 300) }

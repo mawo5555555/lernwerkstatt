@@ -27,6 +27,7 @@ Dann `http://localhost:8731` öffnen.
 | `c-mathe.js`, `c-deutsch.js`, `c-englisch.js`, `c-nawi.js` | Missionen je Fach |
 | `c-technik.js` | Profi-Werkstatt: Motortechnik über den Schulstoff hinaus (mit Taschenrechner) |
 | `c-extra.js` | Mitmach-Aufgaben (Sortieren, Lückentext, Blitzrunde, Zahlenstrahl), werden in die Missionen eingefügt |
+| `tuning.js` | Simson-Tuning: Teile mit Talern kaufen und einbauen, Hauptdüse, Prüfstand, Lackierung (Leistungswerte sind Spiel-Beispielwerte) |
 | `garage.js` | Garage: Fahrzeugseiten mit Steckbrief, Starten, Schaltspiel, Tanken, Waschen, Experten-Quiz, Teile |
 | `c-sprechen.js` | kleine Sprech-Übungen (Bestandteil von Deutsch) |
 | `sw.js`, `manifest.webmanifest` | Offline-Cache und Installation |

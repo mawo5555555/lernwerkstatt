@@ -1,7 +1,7 @@
 'use strict';
 const $ = s => document.querySelector(s);
 const KEY = 'wt-state-v1';
-const VERSION = '2.2';
+const VERSION = '2.3';
 let S;
 try { S = JSON.parse(localStorage.getItem(KEY)) } catch (e) {}
 S = Object.assign({points: 0, days: [], done: {}, stars: {}, miss: {}, log: [], ratings: [], theme: 'simson', subj: 'mathe', name: '', daily: {}, goalDate: '', sound: true, rev: {}}, S || {});
@@ -556,7 +556,7 @@ function finish() {
   if (m.speech) { if (m.skill === 'mut') pts += 5; if (talk) pts += 5 } else if (talk) pts += 3;
   const quote = run.tot ? (run.ok - run.help / 2) / run.tot : 1;
   const stars = m.speech || !run.tot ? 3 : quote >= .85 ? 3 : quote >= .6 ? 2 : 1;
-  const before = S.points, rankBefore = rankOf(S.points).i; S.points += pts; const rankUp = rankOf(S.points).i > rankBefore ? rankOf(S.points).cur : null;
+  const before = S.points, rankBefore = rankOf(S.points).i; S.points += pts; S.coins = (S.coins || 0) + pts; const rankUp = rankOf(S.points).i > rankBefore ? rankOf(S.points).cur : null;
   if (!box) { S.done[m.id] = (S.done[m.id] || 0) + 1; S.stars[m.id] = Math.max(S.stars[m.id] || 0, stars) }
   if (!box && !m.speech) { const r = S.rev[m.id]; S.rev[m.id] = stars >= 2 ? (() => { const k = r ? Math.min(r.step + 1, 3) : 0; return {step: k, due: addDays(REV_INT[k])} })() : {step: 0, due: addDays(1)} }
   if (box && run.dueIds) run.dueIds.forEach(id => { const r = S.rev[id]; if (r) { const k = Math.min(r.step + 1, 3); S.rev[id] = {step: k, due: addDays(REV_INT[k])} } });
