@@ -41,6 +41,7 @@ function wsOpen(i) {
   const parts = (p.parts || []).map(k => partRow(k, st)).join('');
   const duese = p.duese ? `<h2>Hauptdüse</h2><div class="sld"><div class="row sp"><span>Größe</span><b id="dv">${t.duese}</b></div><input type="range" min="56" max="124" step="2" value="${t.duese}" oninput="$('#dv').textContent=this.value" onchange="tDuese(+this.value)"></div><button class="btn alt" onclick="wsGo('dyno')">📈 Auf den Prüfstand</button>` : '';
   const act = p.act === 'fuel' ? `<p class="m">Tank: ${Math.round(st.fuel)} %. Getankt wird draußen an der Zapfsäule.</p><button class="btn" onclick="wsGo('fuel')">⛽ Zum Tanken</button>` : '';
+  const w3 = $('#ws3'); if (w3) w3.scrollIntoView({behavior: 'smooth', block: 'start'});
   $('#sheet').innerHTML = `<div class="shb" onclick="wsClose()"></div><div class="shc low"><div class="shh" onclick="wsClose()"></div><div class="vpc"><div class="row sp"><b style="font-size:20px">${p.ic} ${esc(p.n)}</b><button class="back" onclick="wsClose()">✕</button></div>
     <p class="m">${esc(spotInfo(p))}</p>${jobs ? '<h2>Wartung</h2>' + jobs : ''}${parts ? '<h2>Tuning-Teile</h2>' + parts : ''}${duese}${act}</div></div>`;
 }

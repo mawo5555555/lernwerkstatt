@@ -138,7 +138,7 @@ function ws3dInit(el) {
   const cv = r.domElement, P = new Map(); let down = null, pinch = 0;
   cv.addEventListener('pointerdown', e => { cv.setPointerCapture(e.pointerId); P.set(e.pointerId, {x: e.clientX, y: e.clientY}); if (P.size === 1) down = {x: e.clientX, y: e.clientY, t: performance.now(), moved: 0}; if (P.size === 2) { const [a, b] = [...P.values()]; pinch = Math.hypot(a.x - b.x, a.y - b.y); down = null } });
   cv.addEventListener('pointermove', e => { const p = P.get(e.pointerId); if (!p) return; const dx = e.clientX - p.x, dy = e.clientY - p.y; p.x = e.clientX; p.y = e.clientY;
-    if (P.size === 1) { W3.o.yaw -= dx * .009; W3.o.pitch = Math.max(-.05, Math.min(1.25, W3.o.pitch + dy * .006)); if (down) down.moved += Math.abs(dx) + Math.abs(dy) }
+    if (P.size === 1) { W3.goal.yaw = undefined; W3.o.yaw -= dx * .009; W3.o.pitch = Math.max(-.05, Math.min(1.25, W3.o.pitch + dy * .006)); if (down) down.moved += Math.abs(dx) + Math.abs(dy) }
     else if (P.size === 2) { const [a, b] = [...P.values()], n = Math.hypot(a.x - b.x, a.y - b.y); if (pinch) W3.goal.dist = W3.o.dist = Math.max(.45, Math.min(4.5, W3.o.dist * pinch / n)); pinch = n } });
   const up = e => { if (down && P.size === 1 && down.moved < 8 && performance.now() - down.t < 450) ws3dPick(e); P.delete(e.pointerId); if (P.size < 2) pinch = 0; if (!P.size) down = null };
   cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', e => { P.delete(e.pointerId); down = null });
@@ -151,6 +151,9 @@ function ws3dInit(el) {
 function ws3dTick() {
   const T = window.THREE, o = W3.o, g = W3.goal, now = performance.now() / 1000;
   o.t.lerp(g.t, .08); if (Math.abs(o.dist - g.dist) > .001) o.dist += (g.dist - o.dist) * .08;
+  if (g.yaw !== undefined) { o.yaw += (g.yaw - o.yaw) * .08; o.pitch += (g.pitch - o.pitch) * .08; if (Math.abs(g.yaw - o.yaw) < .002 && Math.abs(g.pitch - o.pitch) < .002) { g.yaw = undefined } }
+  const sh = W3.shift || 0; W3.cs = (W3.cs || 0) + (sh - (W3.cs || 0)) * .08; const ew = W3.el.clientWidth, eh = W3.el.clientHeight;
+  if (W3.cs > .001) W3.cam.setViewOffset(ew, eh, 0, eh * W3.cs, ew, eh); else W3.cam.clearViewOffset();
   const c = W3.cam; c.position.set(o.t.x + o.dist * Math.cos(o.pitch) * Math.sin(o.yaw), o.t.y + o.dist * Math.sin(o.pitch) + .05, o.t.z + o.dist * Math.cos(o.pitch) * Math.cos(o.yaw)); c.lookAt(o.t);
   Object.values(W3.parts).forEach(p => { const u = p.userData, f = u.f || 0; u.cf = (u.cf || 0) + (f - (u.cf || 0)) * .25;
     p.position.copy(u.base).addScaledVector(u.ax, u.amt * u.cf);
@@ -164,12 +167,15 @@ function ws3dPick(e) {
   if (!hit) { tone(300, .04, 0, 'sine', .03); return }
   const i = WS[G.id].spots.findIndex(s => s.id === hit.object.userData.part); if (i >= 0) wsOpen(i);
 }
+// Blickwinkel je Teil: yaw 0 = von rechts (Auspuffseite), π = von links (Kettenseite), pitch = von oben
+const VIEW3D = {kerze: [.45, .45, .75], zyl: [.3, .25, 1.05], verg: [.15, .2, .95], luft: [.05, .3, 1.1], aus: [.1, .12, 1.7], kette: [Math.PI - .1, .15, 1.6], zuend: [Math.PI - .35, .15, 1], rad: [-.55, .2, 1.5], tank: [.55, .55, 1.2]};
 function ws3dFocus(k) {
   if (!W3.on) return; const T = window.THREE; W3.sel = k;
-  if (!k) { W3.goal.t.set(0, .55, 0); W3.goal.dist = 2.7; return }
-  const p = W3.parts[k], v = new T.Vector3(); (k === 'aus' || k === 'rad' ? p.children[p.children.length - 1] || p : p).getWorldPosition(v); if (k === 'aus') v.set(-.2, .38, .15);
-  W3.goal.t.copy(v); W3.goal.dist = {kerze: .75, verg: .9, zuend: .9, zyl: 1, luft: 1, kette: 1.5, aus: 1.5, rad: 1.4, tank: 1.2}[k] || 1.2;
-  const side = {kette: -1, zuend: -1, aus: 1, kerze: 1}[k]; if (side) { const want = side > 0 ? .75 : Math.PI - .75; W3.o.yaw += Math.atan2(Math.sin(want - W3.o.yaw), Math.cos(want - W3.o.yaw)) * .999 }
+  if (!k) { W3.goal.t.set(0, .55, 0); W3.goal.dist = 2.7; W3.goal.yaw = .75; W3.goal.pitch = .2; W3.shift = 0; return }
+  const p = W3.parts[k], v = new T.Vector3(); p.getWorldPosition(v);
+  if (k === 'aus') v.set(-.2, .38, .15); if (k === 'kette') v.set(-.32, .42, -.12); if (k === 'rad') v.set(-.66, .42, 0);
+  const [yaw, pitch, dist] = VIEW3D[k] || [.75, .25, 1.2];
+  W3.goal.t.copy(v); W3.goal.dist = dist; W3.goal.yaw = W3.o.yaw + Math.atan2(Math.sin(yaw - W3.o.yaw), Math.cos(yaw - W3.o.yaw)); W3.goal.pitch = pitch; W3.shift = .2;
 }
 // Beim Schrauben: Teil bewegt sich im Modell mit (f = 0..1 Fortschritt, dir −1 = lösen, +1 = festziehen)
 const JOB3D = {kerze: 'kerze', luft: 'luft', kette: 'kette', reifen: 'rad'}, SLOT3D = {zyl: 'zyl', verg: 'verg', aus: 'aus', luft: 'luft', zuend: 'zuend', rit: 'kette'};
