@@ -1,7 +1,7 @@
 'use strict';
 const $ = s => document.querySelector(s);
 const KEY = 'wt-state-v1';
-const VERSION = '2.0';
+const VERSION = '2.1';
 let S;
 try { S = JSON.parse(localStorage.getItem(KEY)) } catch (e) {}
 S = Object.assign({points: 0, days: [], done: {}, stars: {}, miss: {}, log: [], ratings: [], theme: 'simson', subj: 'mathe', name: '', daily: {}, goalDate: '', sound: true, rev: {}}, S || {});
@@ -19,7 +19,7 @@ const clearTimers = () => { timers.forEach(t => { clearTimeout(t); clearInterval
 const later = (f, ms) => { const t = setTimeout(f, ms); timers.push(t); return t };
 
 // ---- Aufgaben-Index (für Boxenstopp)
-const QT = ['quiz', 'num', 'text', 'match', 'order', 'parts'];
+const QT = ['quiz', 'num', 'text', 'match', 'order', 'parts', 'sort', 'gap', 'tf', 'line'];
 const QIDX = {};
 MISSIONS.forEach(m => m.steps.forEach((s, i) => { if (QT.includes(s.type) && (s.type !== 'parts' || s.ask)) { s.qid = m.id + '#' + i; QIDX[s.qid] = {m, s} } }));
 const SUBJ_ORDER = ['mathe', 'deutsch', 'englisch', 'nawi'];
@@ -89,16 +89,17 @@ const ringsHTML = () => {
   <div class="rk">${rk.cur.e} <b>${rk.cur.n}</b>${nx ? ` · noch ${nx.p - S.points} Punkte bis ${nx.e} ${nx.n}` : ' · höchster Rang'}</div></div></div>`;
 };
 
-function go(v) { clearTimers(); run = null; view = v; render() }
+function go(v) { clearTimers(); if (typeof engStop === 'function') engStop(); run = null; view = v; render() }
 
 function render() {
   const a = $('#app');
   const tabs = [['home', '🏠', 'Heute'], ['missions', '📚', 'Lernen'], ['garage', '🏁', 'Garage'], ['parents', '👪', 'Eltern']];
-  $('#tab').innerHTML = tabs.map(t => `<button class="${view === t[0] ? 'on' : ''}" onclick="go('${t[0]}')"><span>${t[1]}</span>${t[2]}</button>`).join('');
+  $('#tab').innerHTML = tabs.map(t => `<button class="${view === t[0] || (view === 'veh' && t[0] === 'garage') ? 'on' : ''}" onclick="go('${t[0]}')"><span>${t[1]}</span>${t[2]}</button>`).join('');
   $('#tab').style.display = view === 'run' ? 'none' : 'flex';
   if (view === 'home') { const p = plan(); setAccent(SUBJECTS[p.main.subject].color); a.innerHTML = home(p) }
   else if (view === 'missions') { setAccent(SUBJECTS[S.subj].color); a.innerHTML = missions() }
   else if (view === 'garage') { setAccent('#e0b43a'); a.innerHTML = garage() }
+  else if (view === 'veh') { setAccent('#e0b43a'); a.innerHTML = vehView(); requestAnimationFrame(() => drawDirt(false)) }
   else if (view === 'parents') { setAccent('#3b8cff'); a.innerHTML = parents() }
   else if (view === 'run') step();
   if (view === 'home') requestAnimationFrame(() => requestAnimationFrame(() => document.querySelectorAll('.rg').forEach(c => { c.style.strokeDasharray = c.dataset.v })));
@@ -133,7 +134,7 @@ function home(p) {
   <h2>Das große Ziel</h2>
   <button class="item" onclick="go('garage')"><div class="dot" style="background:#ff453a33">🏆</div><div style="flex:1"><b>${esc(PROJECT.name)}</b><span class="m">${projectDone() ? 'Geschafft! Urkunde in der Garage' : projectPct() + ' % der Etappen geschafft'}</span><div class="bar" style="margin-top:8px"><i style="width:${Math.max(3, projectPct())}%;background:#ff453a"></i></div></div></button>
   <h2>Deine Garage</h2>
-  <div class="card gcard" onclick="go('garage')"><div class="gimg">${gimg(g)}</div><div style="flex:1"><b>${esc(g.name)}</b>
+  <div class="card gcard" onclick="openVeh('${g.id}')"><div class="gimg">${gimg(g)}</div><div style="flex:1"><b>${esc(g.name)}</b>
   ${nxt ? `<div class="m">Noch ${nxt.need - S.points} Punkte bis ${esc(nxt.name)}</div><div class="bar" style="margin-top:8px"><i style="width:${Math.max(4, 100 * (S.points - g.need) / (nxt.need - g.need))}%"></i></div>` : '<div class="m">Alles freigeschaltet!</div>'}</div></div>`;
 }
 const gimg = g => g.svg && SVGS[g.svg] ? `<div style="width:100%;padding:2px">${SVGS[g.svg]}</div>` : `<img src="${g.img}" alt="" onerror="this.replaceWith(document.createTextNode('${g.emoji}'))">`;
@@ -155,11 +156,6 @@ function projectView() {
   ${done ? `<div class="card center" style="background:#ff453a22;margin-top:16px"><div class="big">🏆</div><b style="font-size:20px">Urkunde</b><p>Du hast alle Etappen geschafft und weißt jetzt, was zu einem MTX-Zylinder gehört.${S.goalDate ? '<br><span class="m">Geschafft am ' + esc(S.goalDate) + '</span>' : ''}</p></div>` : ''}
   <p class="m" style="margin-top:14px">${esc(PROJECT.note)}</p></div>`;
 }
-function garage() {
-  return projectView() + `<h1>Garage</h1><p class="m">Für jede Mission gibt es Punkte. Damit schaltest du neue Fahrzeuge frei.</p>
-  ${GARAGE.map(g => `<div class="card gcard ${S.points < g.need ? 'lock' : ''}" style="cursor:pointer" onclick="honk('${g.id}')"><div class="gimg">${gimg(g)}</div><div><b>${esc(g.name)}</b><div class="m">${S.points < g.need ? '🔒 ab ' + g.need + ' Punkten' : esc(g.text)}</div></div></div>`).join('')}`;
-}
-
 function parents() {
   const days = [...Array(7)].map((_, i) => { const d = new Date(); d.setDate(d.getDate() - 6 + i); return d });
   const cnt = d => S.log.filter(e => e.d === ymd(d)).length;
@@ -192,7 +188,7 @@ function parents() {
 function start(id) {
   clearTimers();
   const m = MISSIONS.find(x => x.id === id);
-  run = {m, i: 0, ok: 0, tot: 0, score: 0, steps: [...m.steps, ...(m.speech ? [{type: 'rate'}] : [])]};
+  run = {m, i: 0, ok: 0, tot: 0, help: 0, score: 0, steps: [...m.steps, ...(m.speech ? [{type: 'rate'}] : [])]};
   view = 'run'; setAccent(theme(m.theme).color); render();
 }
 function startBox() {
@@ -202,7 +198,7 @@ function startBox() {
   if (ids.length < 4) shuffle(Object.keys(QIDX).filter(q => S.done[QIDX[q].m.id] && !ids.includes(q))).slice(0, 6 - ids.length).forEach(q => ids.push(q));
   if (!ids.length) { alert('Noch nichts zu wiederholen. Schließe zuerst eine Mission ab.'); return }
   const steps = [{type: 'wissen', title: 'Boxenstopp', text: 'Hier kommen Aufgaben dran, die beim ersten Mal nicht gleich geklappt haben, und Aufgaben zum Auffrischen. Wer Wissen mit Pausen wiederholt, behält es länger. Nimm dir Zeit.'}, ...shuffle(ids).map(q => QIDX[q].s)];
-  run = {m: {id: 'box', theme: 'sport', title: 'Boxenstopp', steps}, i: 0, ok: 0, tot: 0, score: 0, steps, dueIds};
+  run = {m: {id: 'box', theme: 'sport', title: 'Boxenstopp', steps}, i: 0, ok: 0, tot: 0, help: 0, score: 0, steps, dueIds};
   view = 'run'; setAccent(theme('sport').color); render();
 }
 const next = () => { clearTimers(); run.i++; step() };
@@ -210,7 +206,7 @@ function step() {
   const a = $('#app'), s = run.steps[run.i], n = run.steps.length;
   if (run.i >= n) return finish();
   const head = `<div class="nav"><button class="back" onclick="if(confirm('Mission beenden?'))go('home')">✕</button><div class="steps">${run.steps.map((_, k) => `<i class="${k <= run.i ? 'on' : ''}"></i>`).join('')}</div></div>`;
-  run.cur = {tries: 0, done: false};
+  run.cur = {tries: 0, done: false, hl: 0, help: false};
   a.innerHTML = head + stepVis(s) + STEP[s.type](s);
   if (INIT[s.type]) INIT[s.type](s);
   window.scrollTo(0, 0);
@@ -222,12 +218,13 @@ function stepVis(s) {
   return '';
 }
 const nextBtn = (label = 'Weiter', dis = false) => `<button class="btn" id="nx" ${dis ? 'disabled' : ''} onclick="next()">${label}</button>`;
-const fb = (cls, html) => { const e = $('#fb'); if (e) e.innerHTML = `<div class="fb ${cls}">${html}</div>` };
+const fb = (cls, html) => { const e = $('#fb'); if (e) e.innerHTML = html ? `<div class="fb ${cls}">${html}</div>` : '' };
 
 // Antwort werten: nur der erste Versuch zählt für Sterne und Boxenstopp
 function scoreQ(ok) {
   const s = run.steps[run.i]; run.tot++; snd(ok ? 'ok' : 'bad');
-  if (ok) { run.ok++; if (s.qid && S.miss[s.qid]) { S.miss[s.qid]--; if (S.miss[s.qid] <= 0) delete S.miss[s.qid] } }
+  if (ok && run.cur.help) { run.ok++; run.help++; if (s.qid && !S.miss[s.qid]) S.miss[s.qid] = 1 }
+  else if (ok) { run.ok++; if (s.qid && S.miss[s.qid]) { S.miss[s.qid]--; if (S.miss[s.qid] <= 0) delete S.miss[s.qid] } }
   else if (s.qid) S.miss[s.qid] = (S.miss[s.qid] || 0) + 1;
   save();
 }
@@ -238,20 +235,37 @@ const parseNum = s => { s = String(s).replace(/\s/g, '').replace(/[^\d.,\-]/g, '
 const STEP = {
   wissen: s => `<h1>${esc(s.title)}</h1>${s.svg ? `<div class="card art">${SVGS[s.svg]}</div>` : ''}<div class="card"><p>${rich(s.text)}</p></div>${s.fact ? `<div class="card fact"><b>💡 Wusstest du?</b><p class="m" style="color:var(--t)">${rich(s.fact)}</p></div>` : ''}${nextBtn()}`,
   quiz: s => { run.cur.order = shuffle(s.opts.map((_, i) => i));
-    return `<div class="q">${rich(s.q)}</div>${s.img ? `<img class="qimg" src="${s.img}" alt="">` : ''}${run.cur.order.map(i => `<button class="opt" id="o${i}" onclick="qpick(${i})">${esc(s.opts[i])}</button>`).join('')}<div id="fb"></div>${nextBtn('Weiter', true)}`; },
-  num: s => `<div class="q">${rich(s.q)}</div>${run.m.pro ? '<button class="calcb" onclick="calcOpen()">🖩 Taschenrechner</button>' : ''}<div class="row"><input id="in" class="in" inputmode="decimal" autocomplete="off" placeholder="Antwort" onkeydown="if(event.key==='Enter')ncheck()"><span class="m">${esc(s.unit || '')}</span></div><div id="fb"></div>
+    return `<div class="q">${rich(s.q)}</div>${s.img ? `<img class="qimg" src="${s.img}" alt="">` : ''}${run.cur.order.map(i => `<button class="opt" id="o${i}" onclick="qpick(${i})">${esc(s.opts[i])}</button>`).join('')}${hbtn(s.opts.length > 2 ? '💡 Tipp: 50:50' : '💡 Tipp')}<div id="fb"></div>${nextBtn('Weiter', true)}`; },
+  num: s => `<div class="q">${rich(s.q)}</div>${run.m.pro ? '<button class="calcb" onclick="calcOpen()">🖩 Taschenrechner</button>' : ''}<div class="row"><input id="in" class="in" inputmode="decimal" autocomplete="off" placeholder="Antwort" onkeydown="if(event.key==='Enter')ncheck()"><span class="m">${esc(s.unit || '')}</span></div>${hbtn()}<div id="fb"></div>
     <button class="btn" id="chk" onclick="ncheck()">Prüfen</button>${nextBtn('Weiter', true)}`,
-  text: s => `<div class="q">${rich(s.q)}</div><input id="in" class="in" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Antwort" onkeydown="if(event.key==='Enter')tcheck()"><div id="fb"></div>
+  text: s => `<div class="q">${rich(s.q)}</div><input id="in" class="in" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Antwort" onkeydown="if(event.key==='Enter')tcheck()">${hbtn()}<div id="fb"></div>
     <button class="btn" id="chk" onclick="tcheck()">Prüfen</button>${nextBtn('Weiter', true)}`,
   match: s => { run.cur.R = shuffle(s.pairs.map((_, i) => i)); run.cur.sel = null; run.cur.found = 0; run.cur.mist = 0;
     return `<h1>${esc(s.title)}</h1><p class="m">${esc(s.text || '')} Tippe links und rechts jeweils eins an.</p><div class="mt"><div>${s.pairs.map((p, i) => `<button class="mb" id="ml${i}" onclick="mpick('l',${i})">${esc(p[0])}</button>`).join('')}</div>
-    <div>${run.cur.R.map(i => `<button class="mb" id="mr${i}" onclick="mpick('r',${i})">${esc(s.pairs[i][1])}</button>`).join('')}</div></div><div id="fb"></div>${nextBtn('Weiter', true)}`; },
+    <div>${run.cur.R.map(i => `<button class="mb" id="mr${i}" onclick="mpick('r',${i})">${esc(s.pairs[i][1])}</button>`).join('')}</div></div>${hbtn('💡 Zeig mir ein Paar')}<div id="fb"></div>${nextBtn('Weiter', true)}`; },
   order: s => { run.cur.idx = shuffle(s.items.map((_, i) => i)); run.cur.got = []; run.cur.mist = 0;
     return `<h1>${esc(s.title)}</h1><p class="m">${esc(s.text || '')}</p><div class="card" id="oo" style="min-height:54px"><span class="m">Hier entsteht die richtige Reihenfolge …</span></div>
-    <div id="op">${run.cur.idx.map(i => `<button class="mb wide" id="oi${i}" onclick="opick(${i})">${esc(s.items[i])}</button>`).join('')}</div><div id="fb"></div>${nextBtn('Weiter', true)}`; },
+    <div id="op">${run.cur.idx.map(i => `<button class="mb wide" id="oi${i}" onclick="opick(${i})">${esc(s.items[i])}</button>`).join('')}</div>${hbtn('💡 Was kommt als Nächstes?')}<div id="fb"></div>${nextBtn('Weiter', true)}`; },
+  sort: s => { const c = run.cur; c.sel = null; c.left = s.items.length; c.mist = 0;
+    return `<h1>${esc(s.title)}</h1><p class="m">${esc(s.text || '')} Tippe ein Kärtchen an und dann das passende Fach.</p>
+    <div class="pool" id="pool">${shuffle(s.items.map((_, i) => i)).map(i => `<button class="mb kt" id="si${i}" onclick="spick(${i})">${esc(s.items[i][0])}</button>`).join('')}</div>
+    <div class="bins b${s.cats.length}">${s.cats.map((k, j) => `<button class="bin" id="sb${j}" onclick="sbin(${j})"><b>${esc(k)}</b><div class="bc" id="bc${j}"></div></button>`).join('')}</div>${hbtn('💡 Zeig mir eins')}<div id="fb"></div>${nextBtn('Weiter', true)}`; },
+  gap: s => { const c = run.cur; c.k = 0; c.mist = 0; const segs = s.text.split(/\{([^}]*)\}/); c.ans = segs.filter((_, i) => i % 2).map(x => x.split('|'));
+    const chips = shuffle([...c.ans.map(a => a[0]), ...(s.extra || [])]);
+    return `<h1>${esc(s.title)}</h1><p class="m">Tippe die Wörter in der richtigen Reihenfolge in die Lücken. Die blaue Lücke ist dran.</p>
+    <div class="card gapt">${segs.map((x, i) => i % 2 ? `<span class="gp${i === 1 ? ' cur' : ''}" id="gp${(i - 1) / 2}">${' '.repeat(Math.max(3, Math.min(10, x.split('|')[0].length)))}</span>` : rich(x)).join('')}</div>
+    <div class="pool">${chips.map((w, k) => `<button class="mb kt" id="gc${k}" data-w="${esc(w)}" onclick="gpick(${k})">${esc(w)}</button>`).join('')}</div>${hbtn('💡 Welches Wort passt?')}<div id="fb"></div>${nextBtn('Weiter', true)}`; },
+  tf: s => { run.cur.k = 0; run.cur.mist = 0; run.cur.row = 0;
+    return `<h1>${esc(s.title || 'Blitzrunde')}</h1><p class="m">Richtig oder falsch? Entscheide dich.</p><div class="card tfc" id="tfc"></div>
+    <div class="tfb" id="tfb"><button class="tfx no" onclick="tfa(false)">✗ Falsch</button><button class="tfx yes" onclick="tfa(true)">✓ Richtig</button></div><div id="fb"></div>${nextBtn('Weiter', true)}`; },
+  line: s => { const t = s.ticks || [[s.min, de(s.min, 3)], [s.max, de(s.max, 3)]];
+    return `<div class="q">${rich(s.q)}</div>${run.m.pro ? '<button class="calcb" onclick="calcOpen()">🖩 Taschenrechner</button>' : ''}<div class="card nlc"><div class="nlv"><b id="lv">?</b></div>
+    <div class="nl"><div class="nlr" id="nlr"></div><input type="range" id="lr" min="${s.min}" max="${s.max}" step="${s.step}" value="${s.start ?? s.min}" oninput="lshow()">
+    <div class="nlt">${t.map(x => `<span style="left:${nlp((x[0] - s.min) / (s.max - s.min))}">${esc(x[1])}</span>`).join('')}</div></div></div>${hbtn()}<div id="fb"></div>
+    <button class="btn" id="chk" onclick="lcheck()">Prüfen</button>${nextBtn('Weiter', true)}`; },
   parts: s => { const sp = SPOTS[s.svg]; run.cur.n = 0; run.cur.mist = 0; run.cur.todo = s.ask ? shuffle(sp.map((_, i) => i)) : []; run.cur.hit = [];
     return `<h1>${esc(s.title)}</h1><p class="m">${esc(s.text || '')}</p><div class="card art"><button class="zoomb" onclick="this.parentNode.classList.toggle('z');this.textContent=this.parentNode.classList.contains('z')?'🔍 Verkleinern':'🔍 Vergrößern'">🔍 Vergrößern</button><div class="pwo"><div class="pw">${SVGS[s.svg]}${sp.map((p, i) => `<button class="hs" id="hs${i}" style="left:${p.x}%;top:${p.y}%" onclick="hpick(${i})">${s.ask ? '' : i + 1}</button>`).join('')}</div></div></div>
-    <div class="card" id="hi"><p class="m">${s.ask ? 'Los geht’s …' : 'Tippe auf die Zahlen und lerne die Teile kennen.'}</p></div><div id="fb"></div>${nextBtn('Weiter', !!s.ask)}`; },
+    <div class="card" id="hi"><p class="m">${s.ask ? 'Los geht’s …' : 'Tippe auf die Zahlen und lerne die Teile kennen.'}</p></div>${s.ask ? hbtn('💡 Wo ist das?') : ''}<div id="fb"></div>${nextBtn('Weiter', !!s.ask)}`; },
   slider: s => `<h1>${esc(s.title)}</h1><p class="m">${esc(s.text || '')}</p>${s.sliders.map(x => `<div class="sld"><div class="row sp"><span>${esc(x.label)}</span><b id="sv_${x.id}"></b></div><input type="range" id="sr_${x.id}" min="${x.min}" max="${x.max}" step="${x.step}" value="${x.val}" oninput="slid()"></div>`).join('')}
     <div class="card lab" id="lab"></div>${nextBtn()}`,
   circuit: () => `<h1>Stromkreis-Labor</h1><p class="m">Schließe den Schalter und stecke etwas in die Lücke. Leuchtet die Lampe?</p><div class="card"><div id="cv"></div><div class="center" id="cs" style="font-weight:700"></div></div>
@@ -283,23 +297,117 @@ function qpick(i) {
   if (c.tries === 1) scoreQ(false);
   const left = c.order.filter(k => !$('#o' + k).disabled).length;
   if (c.tries >= 2 || left <= 1) { $('#o0').classList.add('ok'); document.querySelectorAll('.opt').forEach(x => x.disabled = true); fb('bad', '<b>Die richtige Antwort ist grün.</b> ' + rich(s.why)); qDone() }
-  else fb('bad', nope() + 'Versuche es noch einmal.');
+  else fb('bad', nope() + 'Versuche es noch einmal.' + ($('#hb') ? ' Brauchst du Hilfe? Dann tippe auf 💡.' : ''));
+}
+// Richtung und Komma-Fehler erkennen
+function dirHint(v, a) {
+  if (!isFinite(v)) return 'Bitte nur eine Zahl eingeben. ';
+  if (a && v && [10, 100, 1000, .1, .01, .001].some(f => Math.abs(v / a - f) < 1e-9)) return 'Die Ziffern stimmen, aber das Komma oder die Einheit nicht. ';
+  return v > a ? 'Dein Ergebnis ist <b>zu groß</b>. ' : 'Dein Ergebnis ist <b>zu klein</b>. ';
+}
+// Rechenweg mit Lücke: die Lösung im Erklärtext durch ❓ ersetzen
+function gapWhy(s) {
+  const str = de(s.a, 3), [ip, fp] = str.split(','), digs = ip.replace('-', '').split('').join('[\\s.\\u00a0\\u202f]?');
+  const re = new RegExp('(^|[^\\d,/])(-?' + digs + (fp ? ',' + fp + '0*' : '(?:,0+)?') + ')(?![\\d/]|,\\d)', 'g');
+  const out = String(s.why).replace(re, '$1❓');
+  return out !== s.why ? out : '';
 }
 function ncheck() {
   const s = run.steps[run.i], c = run.cur, inp = $('#in'); if (c.done || !inp.value.trim()) return;
   const v = parseNum(inp.value), ok = isFinite(v) && Math.abs(v - s.a) <= (s.tol || 0) + 1e-9; c.tries++;
   if (c.tries === 1) scoreQ(ok);
-  if (ok) { inp.disabled = true; fb('good', '<b>Richtig!</b> ' + rich(s.why)); qDone() }
-  else if (c.tries >= 2) { inp.disabled = true; fb('bad', '<b>Die Lösung ist ' + de(s.a, 3) + (s.unit ? ' ' + esc(s.unit) : '') + '.</b> ' + rich(s.why)); qDone() }
-  else { fb('bad', nope() + esc(s.hint || 'Rechne noch einmal in Ruhe.')); inp.select() }
+  const gw = gapWhy(s);
+  if (ok) { inp.disabled = true; fb('good', (c.tries === 1 ? '<b>Richtig!</b> ' : '<b>Jetzt stimmt’s!</b> ') + rich(s.why)); qDone() }
+  else if (c.tries >= 3 || (c.tries === 2 && !gw)) { inp.disabled = true; fb('bad', '<b>Die Lösung ist ' + de(s.a, 3) + (s.unit ? ' ' + esc(s.unit) : '') + '.</b> ' + rich(s.why)); qDone() }
+  else if (c.tries === 2) { fb('bad', dirHint(v, s.a) + 'Letzter Versuch. Hier ist der Rechenweg mit Lücke:<div class="gw">' + rich(gw) + '</div>'); hintOff(); inp.select() }
+  else { fb('bad', nope() + dirHint(v, s.a) + esc(s.hint || 'Rechne noch einmal in Ruhe.') + ($('#hb') ? ' Mit 💡 bekommst du Hilfe.' : '')); inp.select() }
 }
+const lev = (a, b) => { const d = [...Array(b.length + 1).keys()]; for (let i = 1; i <= a.length; i++) { let p = d[0]; d[0] = i; for (let j = 1; j <= b.length; j++) { const t = d[j]; d[j] = Math.min(d[j] + 1, d[j - 1] + 1, p + (a[i - 1] === b[j - 1] ? 0 : 1)); p = t } } return d[b.length] };
+// Buchstaben-Muster als Hilfe: B _ _ _ _
+const letters = (w, lvl) => [...w].map((ch, k) => /[\s\-'’]/.test(ch) ? (ch === ' ' ? ' ' : ch) : (k === 0 || (lvl > 1 && k % 2 === 0)) ? ch : '_').join(' ');
 function tcheck() {
   const s = run.steps[run.i], c = run.cur, inp = $('#in'); if (c.done || !inp.value.trim()) return;
   const ok = s.a.some(a => norm(a, s.cs) === norm(inp.value, s.cs)); c.tries++;
   if (c.tries === 1) scoreQ(ok);
-  if (ok) { inp.disabled = true; fb('good', '<b>Richtig!</b> ' + rich(s.why)); qDone() }
-  else if (c.tries >= 2) { inp.disabled = true; fb('bad', '<b>Richtig wäre: ' + esc(s.a[0]) + '.</b> ' + rich(s.why)); qDone() }
-  else { fb('bad', nope() + esc(s.hint || 'Schau noch einmal genau hin.')); inp.select() }
+  const near = s.a.some(a => lev(norm(a, true).toLowerCase(), norm(inp.value, true).toLowerCase()) === 1), caseOnly = s.cs && s.a.some(a => norm(a) === norm(inp.value));
+  const tip = caseOnly ? 'Fast! Achte auf <b>Groß- und Kleinschreibung</b>. ' : near ? 'Ganz knapp! Nur <b>ein Buchstabe</b> stimmt nicht. ' : '';
+  if (ok) { inp.disabled = true; fb('good', (c.tries === 1 ? '<b>Richtig!</b> ' : '<b>Jetzt stimmt’s!</b> ') + rich(s.why)); qDone() }
+  else if (c.tries >= 3) { inp.disabled = true; fb('bad', '<b>Richtig wäre: ' + esc(s.a[0]) + '.</b> ' + rich(s.why)); qDone() }
+  else if (c.tries === 2) { fb('bad', tip + 'Letzter Versuch, hier ein paar Buchstaben:<div class="gw lt">' + esc(letters(s.a[0], 2)) + '</div>'); hintOff(); inp.select() }
+  else { fb('bad', (tip || nope()) + esc(s.hint || 'Schau noch einmal genau hin.') + ($('#hb') ? ' Mit 💡 bekommst du Hilfe.' : '')); inp.select() }
+}
+
+// ---- Hilfe-Knopf (💡). Mit Tipp gelöste Aufgaben zählen, kommen aber zur Festigung in den Boxenstopp.
+const hbtn = (l = '💡 Tipp') => `<button class="hintb" id="hb" onclick="hint()">${l}</button><div id="hn"></div>`;
+const hintOff = () => { const b = $('#hb'); if (b) b.remove() };
+const hintBox = html => { const e = $('#hn'); if (e) e.innerHTML = `<div class="fb hint">💡 ${html}</div>` };
+const flash = (...els) => els.forEach(e => { if (!e) return; e.classList.remove('hl'); void e.offsetWidth; e.classList.add('hl'); setTimeout(() => e.classList.remove('hl'), 1800) });
+function hint() {
+  const s = run.steps[run.i], c = run.cur; if (c.done || !HINT[s.type]) return;
+  c.hl++; c.help = true; tone(990, .09, 0, 'sine', .06); HINT[s.type](s, c);
+}
+const HINT = {
+  quiz(s, c) { const wrong = c.order.filter(k => k !== 0 && !$('#o' + k).disabled);
+    if (wrong.length > 1) { shuffle(wrong).slice(0, wrong.length - 1).forEach(k => { const b = $('#o' + k); b.disabled = true; b.classList.add('gone') }); hintBox('Zwei falsche Antworten sind weg. Jetzt hast du die Wahl zwischen zwei.' + (s.hint ? ' ' + esc(s.hint) : '')) }
+    else hintBox(s.hint ? esc(s.hint) : 'Lies die Frage noch einmal Wort für Wort. Welche Antwort passt wirklich genau dazu?');
+    hintOff() },
+  num(s, c) { const gw = gapWhy(s);
+    if (c.hl === 1 && s.hint) { hintBox(esc(s.hint) + (gw ? '<br><span class="m">Noch mehr Hilfe? Tippe nochmal.</span>' : '')); if (!gw) hintOff(); $('#hb') && ($('#hb').textContent = '💡 Rechenweg zeigen'); return }
+    hintBox(gw ? 'So geht der Rechenweg, die Lösung fehlt noch:<div class="gw">' + rich(gw) + '</div>' : 'Schreib auf: Was ist gegeben? Was ist gesucht? Dann rechne Schritt für Schritt und mach einen Überschlag: Ist das Ergebnis ungefähr sinnvoll?'); hintOff() },
+  text(s, c) { const w = s.a[0];
+    if (c.hl === 1) { hintBox((s.hint ? esc(s.hint) + '<br>' : '') + 'So sieht das Wort aus (' + [...w].filter(x => /\S/.test(x)).length + ' Zeichen):<div class="gw lt">' + esc(letters(w, 1)) + '</div>'); $('#hb').textContent = '💡 Mehr Buchstaben'; return }
+    hintBox('Noch mehr Buchstaben:<div class="gw lt">' + esc(letters(w, 2)) + '</div>'); hintOff() },
+  match(s, c) { const i = s.pairs.findIndex((_, k) => !$('#ml' + k).classList.contains('ok')); if (i < 0) return; flash($('#ml' + i), $('#mr' + i)); hintBox('Die zwei blinkenden Kärtchen gehören zusammen. Tippe sie an.') },
+  order(s, c) { const want = s.items[c.got.length]; const i = s.items.findIndex((w, k) => w === want && !$('#oi' + k).disabled); flash($('#oi' + i)); hintBox('Das blinkende Kärtchen kommt als Nächstes.') },
+  parts(s, c) { flash($('#hs' + c.todo[c.n])); hintBox('Schau, was da blinkt!') },
+  sort(s, c) { const i = s.items.findIndex((_, k) => $('#si' + k)); if (i < 0) return; flash($('#si' + i), $('#sb' + s.items[i][1])); hintBox(`<b>${esc(s.items[i][0])}</b> gehört in das blinkende Fach.`) },
+  gap(s, c) { const a = c.ans[c.k]; const b = [...document.querySelectorAll('.pool .kt')].find(x => !x.disabled && a.includes(x.dataset.w)); flash(b); hintBox('Das blinkende Wort passt in die blaue Lücke.') },
+  line(s, c) { const w = (s.max - s.min) / 5, lo = Math.max(s.min, s.a - w * (c.hl === 1 ? 1 : .5)), hi = Math.min(s.max, s.a + w * (c.hl === 1 ? 1 : .5)), f = s.fmt || (v => de(v, 3) + (s.unit || ''));
+    const r = $('#nlr'); r.style.left = nlp((lo - s.min) / (s.max - s.min)); r.style.width = `calc((100% - 26px) * ${(hi - lo) / (s.max - s.min)})`; r.style.display = 'block';
+    hintBox(`Die Lösung liegt im grünen Bereich, zwischen <b>${f(lo)}</b> und <b>${f(hi)}</b>.` + (s.hint ? ' ' + esc(s.hint) : '')); if (c.hl > 1) hintOff(); else $('#hb').textContent = '💡 Bereich enger machen' }
+};
+
+// ---- Sortieren
+function spick(i) { const c = run.cur; if (c.done) return; document.querySelectorAll('.kt.sel').forEach(x => x.classList.remove('sel')); c.sel = i; $('#si' + i).classList.add('sel') }
+function sbin(j) {
+  const s = run.steps[run.i], c = run.cur; if (c.done) return;
+  if (c.sel === null) { flash(...document.querySelectorAll('.pool .kt')); return }
+  const i = c.sel, it = s.items[i], b = $('#si' + i), bin = $('#sb' + j);
+  if (it[1] === j) { b.remove(); $('#bc' + j).insertAdjacentHTML('beforeend', `<span class="kok">${esc(it[0])}</span>`); c.sel = null; c.left--; tone(720, .08, 0, 'sine', .07); fb('', '');
+    if (!c.left) { scoreQ(c.mist <= 1); fb('good', c.mist === 0 ? '<b>Alles richtig einsortiert!</b>' : 'Geschafft. Fehlversuche: ' + c.mist); qDone() } }
+  else { c.mist++; b.classList.add('no'); bin.classList.add('no'); later(() => { b.classList.remove('no'); bin.classList.remove('no') }, 450); fb('bad', 'Passt nicht in dieses Fach. ' + (it[2] ? rich(it[2]) : 'Überleg noch einmal.')) }
+}
+// ---- Lückentext
+function gpick(k) {
+  const s = run.steps[run.i], c = run.cur, b = $('#gc' + k); if (c.done || b.disabled) return;
+  if (c.ans[c.k].includes(b.dataset.w)) { const g = $('#gp' + c.k); g.textContent = b.dataset.w; g.className = 'gp ok'; b.disabled = true; b.classList.add('ok'); c.k++; tone(720, .08, 0, 'sine', .07);
+    if (c.k >= c.ans.length) { scoreQ(c.mist <= 1); fb('good', c.mist === 0 ? '<b>Alle Lücken richtig!</b>' : 'Geschafft. Fehlversuche: ' + c.mist); qDone() } else $('#gp' + c.k).classList.add('cur') }
+  else { c.mist++; b.classList.add('no'); later(() => b.classList.remove('no'), 450) }
+}
+// ---- Blitzrunde richtig/falsch
+function tfShow() { const s = run.steps[run.i], c = run.cur, it = s.items[c.k];
+  $('#tfc').innerHTML = `<div class="row sp m"><span>${c.k + 1} von ${s.items.length}</span><span>${c.row > 1 ? '🔥 ' + c.row + ' in Folge' : ''}</span></div><div class="tfs">${rich(it[0])}</div>` }
+function tfa(v) {
+  const s = run.steps[run.i], c = run.cur; if (c.done || c.lock) return;
+  const it = s.items[c.k], ok = v === it[1]; c.lock = true; if (!ok) { c.mist++; c.row = 0 } else c.row++;
+  snd(ok ? 'ok' : 'bad'); $('#tfc').classList.add(ok ? 'good' : 'bad');
+  const go = () => { c.lock = false; $('#tfc').classList.remove('good', 'bad'); c.k++; fb('', '');
+    if (c.k >= s.items.length) { $('#tfb').remove(); scoreQ(c.mist <= 1); $('#tfc').innerHTML = `<div class="center"><div class="big">${c.mist === 0 ? '🏆' : '👍'}</div><b>${s.items.length - c.mist} von ${s.items.length} richtig</b></div>`; fb(c.mist <= 1 ? 'good' : 'bad', c.mist === 0 ? '<b>Fehlerfrei!</b>' : 'Die Erklärungen helfen beim nächsten Mal.'); qDone() } else tfShow() };
+  if (ok) { fb('good', '<b>Richtig!</b> ' + (it[2] ? rich(it[2]) : '')); later(go, it[2] ? 1700 : 800) }
+  else { fb('bad', `<b>Das ist ${it[1] ? 'richtig' : 'falsch'}.</b> ${it[2] ? rich(it[2]) : ''}<button class="btn alt" style="margin:10px 0 0;padding:10px" id="tfn">Weiter ›</button>`); $('#tfn').onclick = go }
+}
+// ---- Zahlenstrahl (13 px Rand für den Regler-Knopf)
+const nlp = p => `calc(13px + (100% - 26px) * ${p})`;
+function lshow() { const s = run.steps[run.i], v = +$('#lr').value, f = s.fmt || (x => de(x, 3) + (s.unit || '')); $('#lv').textContent = s.hide ? '📍' : f(v); run.cur.moved = true }
+function lcheck() {
+  const s = run.steps[run.i], c = run.cur, r = $('#lr'); if (c.done) return;
+  if (!c.moved) { fb('bad', 'Schiebe zuerst den Regler an die richtige Stelle.'); return }
+  const v = +r.value, ok = Math.abs(v - s.a) <= (s.tol ?? s.step / 2) + 1e-9, f = s.fmt || (x => de(x, 3) + (s.unit || '')); c.tries++;
+  if (c.tries === 1) scoreQ(ok);
+  const showA = () => { r.disabled = true; $('.nl').insertAdjacentHTML('beforeend', `<i class="nlm" style="left:${nlp((s.a - s.min) / (s.max - s.min))}"></i>`); $('#lv').textContent = f(v) };
+  if (ok) { showA(); fb('good', (c.tries === 1 ? '<b>Treffer!</b> ' : '<b>Jetzt stimmt’s!</b> ') + rich(s.why || '')); qDone() }
+  else if (c.tries >= 2) { showA(); fb('bad', `<b>Richtig ist ${f(s.a)}</b> (grüne Markierung). ` + rich(s.why || '')); qDone() }
+  else fb('bad', nope() + 'Du bist ' + (v > s.a ? '<b>zu weit rechts</b>.' : '<b>zu weit links</b>.') + (s.hint ? ' ' + esc(s.hint) : ''));
 }
 function mpick(side, i) {
   const s = run.steps[run.i], c = run.cur, b = $('#m' + side + i); if (c.done || b.classList.contains('ok')) return;
@@ -363,6 +471,8 @@ function rxTap() {
 
 const INIT = {
   slider() { slid() },
+  tf() { tfShow() },
+  line(s) { if (s.hide) $('#lv').textContent = '📍' },
   parts(s) { if (s.ask) hpick(-1) },
   circuit() { run.cur.on = false; run.cur.m = 3; circ() },
   reaction() { run.cur.st = 'idle' },
@@ -441,10 +551,11 @@ function rate(n, el) { document.querySelectorAll('.rate button').forEach(x => x.
 
 function finish() {
   const m = run.m, box = m.id === 'box', talk = m.steps.some(s => s.type === 'talk');
-  let pts = (box ? 6 : 10) + 2 * run.ok;
-  const perfect = run.tot > 0 && run.ok === run.tot; if (perfect && !box) pts += 5;
+  let pts = (box ? 6 : 10) + 2 * run.ok - run.help;
+  const perfect = run.tot > 0 && run.ok === run.tot && !run.help; if (perfect && !box) pts += 5;
   if (m.speech) { if (m.skill === 'mut') pts += 5; if (talk) pts += 5 } else if (talk) pts += 3;
-  const stars = m.speech || !run.tot ? 3 : run.ok / run.tot >= .85 ? 3 : run.ok / run.tot >= .6 ? 2 : 1;
+  const quote = run.tot ? (run.ok - run.help / 2) / run.tot : 1;
+  const stars = m.speech || !run.tot ? 3 : quote >= .85 ? 3 : quote >= .6 ? 2 : 1;
   const before = S.points, rankBefore = rankOf(S.points).i; S.points += pts; const rankUp = rankOf(S.points).i > rankBefore ? rankOf(S.points).cur : null;
   if (!box) { S.done[m.id] = (S.done[m.id] || 0) + 1; S.stars[m.id] = Math.max(S.stars[m.id] || 0, stars) }
   if (!box && !m.speech) { const r = S.rev[m.id]; S.rev[m.id] = stars >= 2 ? (() => { const k = r ? Math.min(r.step + 1, 3) : 0; return {step: k, due: addDays(REV_INT[k])} })() : {step: 0, due: addDays(1)} }
@@ -458,12 +569,12 @@ function finish() {
   const praise = !run.tot ? 'Gut gemacht. Dranbleiben zählt.' : stars === 3 ? ['Stark! Das saß.', 'Sauber gearbeitet, das war fast fehlerfrei.', 'Das war Meisterarbeit.'][Math.floor(Math.random() * 3)] : stars === 2 ? 'Gut gemacht. Mit Übung wird es noch sicherer.' : 'Aus Fehlern lernt man: Die kniffligen Aufgaben üben wir im Boxenstopp.';
   if (stars >= 2 || rankUp || goalNow) { snd('win'); confetti() }
   $('#app').innerHTML = `${cover(coverSrc(m), {cls: 'tall'})}<div class="center" style="margin-top:14px"><div class="big" onclick="egg('flag',3,()=>{confetti();ride('🏎️💨','Zielflagge! Brumm brumm!')})">🏁</div><h1>${box ? 'Boxenstopp erledigt!' : 'Mission geschafft!'}</h1>
-    ${run.tot ? `<div class="stars big2">${starStr(stars)}</div><p class="m">${run.ok} von ${run.tot} Aufgaben gleich beim ersten Versuch richtig.</p>` : ''}
+    ${run.tot ? `<div class="stars big2">${starStr(stars)}</div><p class="m">${run.ok} von ${run.tot} Aufgaben gleich beim ersten Versuch richtig${run.help ? ', davon ' + run.help + ' mit Tipp' : ''}.</p>` : ''}
     <p class="m">Du hast ${pts} Punkte geholt${st > 1 ? ' und ' + st + ' Tage in Folge gelernt' : ''}.</p>
     <p style="font-weight:600">${praise}</p></div>
     ${rankUp ? `<div class="card center" style="background:#ffd60a22"><div class="big">${rankUp.e}</div><b style="font-size:20px">Neuer Rang: ${rankUp.n}</b></div>` : ''}
     ${goalNow ? `<div class="card center" style="background:#ff453a22"><div class="big">🏆</div><b style="font-size:20px">Großes Ziel geschafft!</b><p class="m">Alle Etappen zum MTX-Zylinder sind erledigt. Deine Urkunde liegt in der Garage.</p></div>` : ''}
-    ${unlocked ? `<div class="card gcard"><div class="gimg">${gimg(unlocked)}</div><div><b>Neu in der Garage:</b><br>${esc(unlocked.name)}</div></div>` : ''}
+    ${unlocked ? `<div class="card gcard" style="cursor:pointer" onclick="openVeh('${unlocked.id}')"><div class="gimg">${gimg(unlocked)}</div><div style="flex:1"><b>Neu in der Garage:</b><br>${esc(unlocked.name)}<div class="m">Antippen: starten, Gas geben, tanken …</div></div><span class="chev">›</span></div>` : ''}
     ${mc ? `<button class="btn alt" onclick="startBox()">Boxenstopp: ${mc} Aufgaben wiederholen</button>` : ''}
     <button class="btn" onclick="go('home')">Zurück</button>`;
   run = null; view = 'home'; $('#tab').style.display = 'flex';
@@ -491,7 +602,6 @@ const egg = (k, n, fn) => { eggN[k] = (eggN[k] || 0) + 1; clearTimeout(eggN[k + 
 function toast(t) { const e = document.createElement('div'); e.className = 'toast'; e.textContent = t; document.body.appendChild(e); setTimeout(() => e.remove(), 3200) }
 const brumm = () => [90, 110, 95, 130, 105, 150, 120].forEach((f, i) => tone(f, .12, i * .08, 'sawtooth', .07));
 function ride(em, t) { const r = document.createElement('div'); r.className = 'ride'; r.textContent = em; document.body.appendChild(r); setTimeout(() => r.remove(), 3600); brumm(); if (t) toast(t) }
-function honk(id) { const g = GARAGE.find(x => x.id === id); if (!g) return; if (S.points < g.need) toast('🔒 ' + g.name + ' wartet noch: ab ' + g.need + ' Punkten'); else ride(g.emoji, g.name + ': Brumm brumm!') }
 const OOPS = ['Auch die Simson springt nicht immer beim ersten Kick an.', 'Kolben klemmt kurz. Kein Problem, ölen und weiter.', 'Fast! Zündkerze kurz abwischen und neu denken.', 'Schrauber-Weisheit: Nach fest kommt ab. Also ruhig bleiben.', 'Auch der ZT 300 braucht manchmal zwei Anläufe.', 'Fehlzündung! Passiert den Besten.'];
 const nope = () => Math.random() < .35 ? OOPS[Math.floor(Math.random() * OOPS.length)] + ' ' : 'Nicht ganz. ';
 
